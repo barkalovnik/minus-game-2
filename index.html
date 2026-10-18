@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Числовой остров — игра про минус и дроби</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Golos+Text:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#2f57f5;--panel:#ffffff;--ink:#14123d;--edge:#14123d;--muted:#5b5e88;--soft:#dde2fb;
+  --neg:#2459f2;--pos:#ff7a00;--good:#12a85f;--bad:#ff3d5a;--badbg:#ffe3e8;--yel:#ffd93d;--hl:#fff0a0;--sun:#ffd93d;--hot:#ff3d5a;
+  --negbg:rgba(36,89,242,.12);--posbg:rgba(255,122,0,.15);--under:#d3e1ff;--ground:#b8f0c8;
+  --tube:#e8ecff;--glass:rgba(60,150,255,.22);--ruler:#ffe27a;
+  --display:Unbounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1245;--panel:#171e66;--ink:#f4f5ff;--muted:#aab0e0;--soft:#2f3a96;
+    --neg:#86a6ff;--pos:#ffa243;--good:#1fb872;--bad:#ff6b82;--badbg:rgba(255,107,130,.18);--hl:rgba(255,217,61,.28);
+    --negbg:rgba(134,166,255,.2);--posbg:rgba(255,162,67,.2);--under:#27368f;--ground:#1d6a45;
+    --tube:#2b3790;--glass:rgba(110,180,255,.18);--ruler:#7a6a22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1245;--panel:#171e66;--ink:#f4f5ff;--muted:#aab0e0;--soft:#2f3a96;
+  --neg:#86a6ff;--pos:#ffa243;--good:#1fb872;--bad:#ff6b82;--badbg:rgba(255,107,130,.18);--hl:rgba(255,217,61,.28);
+  --negbg:rgba(134,166,255,.2);--posbg:rgba(255,162,67,.2);--under:#27368f;--ground:#1d6a45;
+  --tube:#2b3790;--glass:rgba(110,180,255,.18);--ruler:#7a6a22;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;color:var(--ink);font:400 17px/1.5 var(--body);-webkit-tap-highlight-color:transparent;
+  background-color:var(--bg);background-repeat:no-repeat;
+  background-image:radial-gradient(circle at 8% 4%,rgba(255,255,255,.16) 0 130px,transparent 131px),radial-gradient(circle at 96% 24%,rgba(255,217,61,.22) 0 100px,transparent 101px),radial-gradient(circle at 4% 70%,rgba(255,95,170,.22) 0 150px,transparent 151px)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 6px var(--edge)}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 56px}
+
+/* кнопки */
+.btn{border:3px solid var(--edge);border-radius:16px;padding:11px 20px;font:800 15px var(--display);background:var(--yel);color:var(--edge);cursor:pointer;box-shadow:0 4px 0 var(--edge)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--edge)}
+.btn.ghost{background:#fff}
+.link{background:none;border:0;color:rgba(255,255,255,.85);text-decoration:underline;cursor:pointer;font-size:15px}
+.back{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--edge);border:3px solid var(--edge);border-radius:999px;padding:6px 14px 6px 8px;font:700 15px var(--body);cursor:pointer;box-shadow:0 3px 0 var(--edge)}
+.back svg{width:20px;height:20px;stroke:var(--edge);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.back:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+
+/* главная */
+.hero{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.hero .ht{flex:1 1 300px;min-width:0}
+.hero h1{font:800 clamp(34px,9vw,58px)/1.02 var(--display);color:#fff;margin:0 0 12px;letter-spacing:-.02em}
+.hero p{color:rgba(255,255,255,.94);margin:0 0 16px;max-width:38ch;font-size:18px}
+.isle{flex:0 1 280px;width:280px;max-width:100%;height:auto}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--yel);color:var(--edge);border:3px solid var(--edge);border-radius:999px;padding:5px 14px 5px 10px;font:800 14px var(--display);box-shadow:0 3px 0 var(--edge)}
+.pill svg{width:20px;height:20px;fill:#fff;stroke:var(--edge);stroke-width:2}
+h2.sec{display:flex;align-items:center;gap:10px;margin:32px 0 14px;color:#fff;font:800 19px/1.2 var(--display)}
+.badge{flex:none;width:38px;height:38px;border-radius:50%;background:var(--yel);color:var(--edge);border:3px solid var(--edge);display:grid;place-items:center;font:800 22px/1 var(--display)}
+.badge .fr{font-size:12px;margin:0;color:var(--edge)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:184px;padding:14px 14px 14px;border:3px solid var(--edge);border-radius:30px 30px 14px 30px;background:var(--c);color:var(--edge);text-align:left;cursor:pointer;box-shadow:0 6px 0 var(--edge)}
+.tile:active{transform:translateY(5px);box-shadow:0 1px 0 var(--edge)}
+.tile .pic{width:72px;height:72px;margin:0 0 6px -4px}
+.tile b{font:800 14px/1.2 var(--display)}
+.tile small{font:600 13px/1.3 var(--body);opacity:.85}
+.tile .prog{margin-top:auto;padding-top:10px;display:flex;align-items:center;gap:5px;width:100%}
+.pip{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--edge)}
+.pip.on{background:var(--edge)}
+.prog .sc{margin-left:auto;font:800 12px var(--display)}
+.tile.lab{grid-column:1/-1;flex-direction:row;align-items:center;gap:16px;min-height:0;padding:14px 18px 14px 12px;border-radius:30px}
+.tile.lab .pic{width:84px;height:84px;margin:0;flex:none}
+.tile.lab b{font-size:18px}
+.tile.lab small{font-size:15px;display:block;margin-top:4px}
+.tile.lab .go{margin-left:auto;flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--yel);border:3px solid var(--edge)}
+.tile.lab .go svg{width:22px;height:22px;stroke:var(--edge);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:420px){.tile.lab .go{display:none}}
+footer{margin-top:34px;text-align:center}
+
+/* игра: шапка и панель */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.bar .ttl{flex:1;min-width:150px;display:flex;align-items:center;gap:10px;color:#fff;font:800 17px/1.15 var(--display)}
+.mini{flex:none;width:46px;height:46px;border-radius:15px;background:var(--c,#fff);border:3px solid var(--edge);display:grid;place-items:center}
+.mini .pic{width:34px;height:34px}
+.dots{display:flex;gap:6px}
+.dot{width:34px;height:34px;border-radius:50%;border:3px solid #fff;background:transparent;color:#fff;font:800 14px var(--display);cursor:pointer;padding:0;display:grid;place-items:center}
+.dot.done{background:var(--yel);color:var(--edge);border-color:var(--edge)}
+.dot.cur{background:#fff;color:var(--edge);border-color:var(--edge)}
+.panel{background:var(--panel);color:var(--ink);border:3px solid var(--edge);border-radius:30px;padding:22px 20px;box-shadow:0 8px 0 var(--edge)}
+@media (max-width:480px){.panel{padding:16px 14px;border-radius:24px}}
+.intro{text-align:center}
+.medal{width:112px;height:112px;margin:0 auto 16px;border-radius:34px;background:var(--c);border:3px solid var(--edge);display:grid;place-items:center;box-shadow:0 5px 0 var(--edge)}
+.medal .pic{width:84px;height:84px}
+.intro p{max-width:44ch;margin:0 auto 22px;font-size:19px}
+.q{font:600 20px/1.45 var(--body);margin:2px 0 16px}
+.q b{font-weight:800;background:var(--hl);border-radius:6px;padding:0 5px}
+#stage{min-height:120px;position:relative}
+.actions{display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.note{margin:10px 0;color:var(--muted);text-align:center;font-size:16px;font-weight:600}
+
+/* ответы учителя */
+.fb{display:none;margin-top:16px;border-radius:18px;padding:12px 16px;font:600 17px/1.4 var(--body)}
+.fb.good{display:flex;align-items:center;gap:14px;background:var(--good);color:#fff;border:3px solid var(--edge);font-weight:800}
+.fb.bad{display:block;background:var(--badbg);border:3px solid var(--bad);color:var(--ink)}
+.fb.info{display:block;color:var(--muted);padding:4px 2px}
+.fb .fr{font-size:1em}
+.stars{flex:none;display:inline-flex}
+.st{display:block;animation:starpop .5s both cubic-bezier(.2,1.6,.4,1)}
+.st:nth-child(2){animation-delay:.12s}.st:nth-child(3){animation-delay:.24s}
+.st svg{display:block;width:30px;height:30px;fill:transparent;stroke:#fff;stroke-width:1.8;stroke-linejoin:round}
+.st.on svg{fill:var(--yel);stroke:var(--edge)}
+@keyframes starpop{from{transform:scale(0) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
+.finale{text-align:center;padding:8px 0}
+.stars.big .st svg{width:60px;height:60px;stroke:var(--edge);fill:var(--yel)}
+.fin{font:800 24px var(--display);margin-top:8px}
+
+/* варианты ответа */
+.choices{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px 0}
+.chip{min-width:78px;padding:9px 16px;border:3px solid var(--edge);border-radius:16px;background:#fff;color:var(--edge);font:800 22px/1.2 var(--display);cursor:pointer;box-shadow:0 4px 0 var(--edge)}
+.chip:active{transform:translateY(3px);box-shadow:0 1px 0 var(--edge)}
+.chip.ok{background:var(--good);color:#fff}
+.chip.no{background:var(--bad);color:#fff;opacity:.85}
+.chip:disabled{cursor:default}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.1;margin:0 3px;font:800 .9em var(--display);text-decoration:none}
+.fr b{padding:0 4px;background:none;font-weight:800}
+.fr b:first-child{border-bottom:2.5px solid currentColor}
+.chip .fr{font-size:.8em}.q .fr{font-size:.85em}.duo .fr{font-size:1em}
+
+/* лифт */
+.bld{position:relative;width:min(100%,360px);margin:0 auto;border:3px solid var(--ink);border-radius:16px;overflow:hidden;background:var(--panel)}
+.floor{display:flex;align-items:center;gap:10px;width:100%;height:44px;border:0;border-bottom:2px solid var(--soft);padding:0 12px;background-color:transparent;color:var(--ink);cursor:pointer;text-align:left}
+.floor .fn{font:800 17px var(--display);width:46px}
+.floor .ft{font-size:14px;font-weight:600;color:var(--muted)}
+.floor.above .fn{color:var(--pos)}
+.floor.under{background-color:var(--under)}
+.floor.under .fn{color:var(--neg)}
+.floor.ground{background-color:var(--ground);border-bottom:4px solid var(--ink)}
+.floor:hover{filter:brightness(.94)}
+.car{position:absolute;left:120px;top:0;width:60px;height:44px;display:grid;place-items:center;transition:transform .7s cubic-bezier(.5,0,.2,1);pointer-events:none}
+.cabin{position:relative;width:46px;height:34px;border:3px solid var(--edge);border-radius:8px;background:var(--yel)}
+.cabin::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:var(--edge)}
+
+/* монеты и долги */
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:70px;margin:8px 0;align-items:center}
+.rowlabel{color:var(--muted);text-align:center;font-size:15px;font-weight:600}
+.tok{width:64px;height:64px;display:grid;place-items:center;font:800 19px/1 var(--display);cursor:pointer;padding:0;border:3px solid var(--edge)}
+.tok.coin{border-radius:50%;background:var(--yel);color:var(--edge);box-shadow:inset 0 0 0 5px var(--yel),inset 0 0 0 7px rgba(20,18,61,.3)}
+.tok.debt{border-radius:12px;background:#2459f2;color:#fff;transform:rotate(-3deg)}
+.tok.sel{box-shadow:0 0 0 4px var(--panel),0 0 0 8px var(--pos)}
+.tok.pop{animation:pop .35s forwards}
+@keyframes pop{to{transform:scale(0);opacity:0}}
+.bal{font:800 54px/1.1 var(--display);text-align:center}
+.bal.neg{color:var(--neg)}.bal.pos{color:var(--pos)}
+
+/* градусник */
+.thermo{display:flex;justify-content:center;align-items:flex-start;margin:0 auto;width:min(100%,300px)}
+.tubewrap{display:flex;flex-direction:column;align-items:center;width:46px}
+.tube{position:relative;width:26px;background:var(--tube);border:3px solid var(--ink);border-bottom:0;border-radius:13px 13px 0 0;overflow:hidden}
+.mer{position:absolute;left:0;right:0;bottom:0;transition:height .4s,background .3s}
+.bulb{width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);margin-top:-6px;transition:background .3s;background:var(--neg)}
+.trows{flex:1}
+.tick{display:flex;align-items:center;gap:8px;width:100%;height:22px;border:0;background:none;padding:0;cursor:pointer;color:var(--ink);font:700 14px var(--body);text-align:left}
+.tick i{display:block;width:14px;height:3px;background:var(--ink);opacity:.5;border-radius:2px}
+.tick.zero{background:var(--hl);font-weight:800}
+.tick.zero i{width:26px;opacity:1}
+.tick:hover{background:var(--negbg)}
+.cards2{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.tcard{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;color:var(--edge);border:3px solid var(--edge);border-radius:18px;padding:10px 22px;cursor:pointer;font:800 22px/1.2 var(--display);box-shadow:0 4px 0 var(--edge)}
+.tcard svg{display:block}
+.tcard.ok{background:var(--good);color:#fff}
+.tcard.no{background:var(--bad);color:#fff;opacity:.8}
+.sortrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:46px;margin-bottom:6px}
+.sorted{background:var(--good);color:#fff;border:3px solid var(--edge);border-radius:12px;padding:3px 10px;font:800 17px var(--display)}
+
+/* числовая прямая */
+.nl{width:100%;height:auto;display:block;touch-action:manipulation;cursor:pointer}
+.nl text{font-family:var(--body);font-weight:700}
+
+/* море */
+.sea{position:relative;border:3px solid var(--ink);border-radius:18px;width:min(100%,400px);margin:0 auto;overflow:hidden;background:#bfeaff}
+.sea .sky{position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(#7fd3ff,#d6f2ff)}
+.sea .water{position:absolute;left:0;right:0;bottom:0;height:50%;background-color:#2d7bff;background-image:repeating-linear-gradient(180deg,transparent 0 14px,rgba(255,255,255,.16) 14px 16px),linear-gradient(#3b95ff,#1d4fd1)}
+.sea .lvl0{position:absolute;left:0;right:0;top:50%;border-top:4px solid #fff}
+.sea .lvl0 span{position:absolute;right:8px;top:4px;font:700 13px var(--body);color:#fff}
+.sea .mk{position:absolute;left:8px;font:800 11px var(--display);color:#fff}
+.sea .mk.up{color:var(--edge)}
+.sitem{position:absolute;display:flex;align-items:center;gap:6px;transition:top .8s ease-in-out}
+.se{display:block;line-height:0}
+.ic *{fill:#fff;stroke:#14123d;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ic .a{fill:#ffd93d}.ic .b{fill:#ff8a3d}
+.stag{background:#fff;color:var(--edge);border:2px solid var(--edge);border-radius:8px;padding:0 7px;font:800 12px/1.6 var(--display);white-space:nowrap}
+
+/* доска */
+.chiprow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.dice{font:800 20px/1.2 var(--display);padding:6px 14px;border:3px solid var(--edge);border-radius:12px;color:#fff}
+.dice.plus{background:#ff7a00}.dice.minus{background:#2459f2}
+.board{display:flex;width:100%;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#fff}
+.cell{flex:1;min-width:0;height:78px;border:0;border-right:2px solid #dde2fb;padding:4px 0;display:flex;flex-direction:column;justify-content:space-between;align-items:center;cursor:pointer;color:var(--edge);background-color:#fff}
+.cell:last-child{border-right:0}
+.cell.neg{background-color:#d3e1ff}
+.cell.zero{background-color:#ffe98a}
+.cell .cn{font:800 11px var(--display)}
+.cell .pc{display:flex;flex-direction:column;gap:3px}
+.pawn{display:block;width:15px;height:15px;border-radius:50%;background:#ff7a00;border:2.5px solid var(--edge)}
+.pawn.bot{border-radius:3px;background:#2459f2}
+.bigdice{text-align:center;margin:10px 0;min-height:44px}
+
+/* дроби */
+.pizza{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
+.duo{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.duo figure{margin:0;text-align:center;font-size:15px;font-weight:600;color:var(--muted)}
+.choc{display:grid;gap:4px;margin:0 auto;padding:6px;background:#4a2a14;border:3px solid var(--edge);border-radius:14px}
+.piece{aspect-ratio:1;border:0;border-radius:5px;cursor:pointer;background:#7a4524;box-shadow:inset 0 0 0 2px rgba(255,255,255,.12),inset 0 -4px 0 rgba(0,0,0,.25);color:#fff;font:800 18px var(--display);padding:0}
+.piece.alt{background:#8c5230}
+.piece.sel{background:#ff7a00}
+.piece.c1{background:#12a85f}.piece.c2{background:#2459f2}.piece.c3{background:#6c6c8a}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:4px}
+.sw.c1{background:#12a85f}.sw.c2{background:#2459f2}
+
+/* стакан и линейка */
+.cup{display:block;margin:0 auto;width:min(100%,230px);height:auto}
+.cup text{font-family:var(--body);font-size:16px;font-weight:800}
+.rul{width:100%;height:auto;display:block}
+.rul text{font-family:var(--body);font-size:22px;font-weight:800}
+.slide{width:min(100%,360px);display:block;margin:10px auto;accent-color:var(--neg);height:32px}
+
+/* музыка */
+.mbar{display:flex;height:64px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:repeating-linear-gradient(45deg,transparent 0 8px,var(--soft) 8px 10px)}
+.seg{display:grid;place-items:center;color:#fff;font:800 22px var(--display);border-right:3px solid var(--panel);min-width:0;overflow:hidden}
+.seg.empty{background:none;border:0}
+.pal{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:14px 0}
+.pal .chip{font:800 13px var(--display);min-width:0;padding:10px 12px}
+
+/* лаборатория */
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-items:start;margin-top:8px}
+.col{background:var(--panel);border:3px solid var(--ink);border-radius:18px;padding:8px 6px;text-align:center}
+.col h3{margin:0 0 8px;font:800 12px var(--display)}
+.lrow{position:relative;height:22px;display:flex;align-items:center;justify-content:center;font:800 11px var(--display)}
+.lrow.neg{background:var(--negbg)}.lrow.pos{background:var(--posbg)}.lrow.zero{background:var(--hl)}
+.lrow.on{background:var(--ink);color:var(--panel)}
+.lcar{position:absolute;left:50%;top:0;width:30px;height:22px;margin-left:-15px;transition:transform .35s;display:grid;place-items:center}
+.lcar::after{content:"";width:22px;height:16px;border:3px solid var(--edge);border-radius:4px;background:var(--yel)}
+.ltube{position:relative;margin:0 auto;width:26px;background:var(--tube);border:3px solid var(--ink);border-bottom:0;border-radius:13px 13px 0 0;overflow:hidden}
+.lbulb{width:36px;height:36px;border-radius:50%;border:3px solid var(--ink);margin:-4px auto 0}
+.pile{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-content:flex-start;min-height:240px}
+.pile .tok{width:38px;height:38px;font-size:12px;cursor:default;box-shadow:none;border-width:2.5px}
+.labrange{width:100%;accent-color:var(--neg);height:34px;margin:10px 0 4px}
+.facts{list-style:none;padding:0;margin:12px 0;display:grid;gap:6px}
+.facts li{padding:3px 0 3px 12px;border-left:4px solid var(--yel)}
+h3.sub{font:800 15px var(--display);margin:18px 0 4px}
+.big-n{font:800 64px/1 var(--display);text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+.btn:disabled,.back:disabled{opacity:.5;cursor:not-allowed}
+.dot:disabled{opacity:.45;cursor:not-allowed}
+#stage.locked{opacity:.45;filter:grayscale(.5);pointer-events:none}
+.wait{margin-top:10px;font-weight:700;font-size:15px}
+.wbar{display:block;height:8px;margin-top:6px;border-radius:99px;background:rgba(20,18,61,.12);overflow:hidden}
+.wbar i{display:block;height:100%;width:100%;background:var(--bad);transition:width .3s linear}
+.chip.small{font-size:15px;min-width:0;padding:8px 12px;line-height:1.3}
+.scalebox{max-width:360px;margin:0 auto}.scale{width:100%;height:auto;display:block}
+.pan{display:flex;flex-wrap:wrap;gap:8px 6px;justify-content:center;min-height:52px;padding:6px 4px 14px}
+.wt,.bl{position:relative;width:40px;height:40px;display:grid;place-items:center;font:800 12px var(--display);padding:0;border:3px solid var(--edge);color:#fff}
+.wt{border-radius:8px;background:#14123d}
+.bl{border-radius:50% 50% 50% 50%/58% 58% 42% 42%;background:#2459f2}
+.bl::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:9px;background:var(--ink);margin-left:-1px}
+.pan button.wt,.pan button.bl{cursor:pointer}
+.pan button:disabled{cursor:default;opacity:1}
+.scoreb{background:#14123d;color:#fff;border-radius:18px;padding:12px 16px;text-align:center;max-width:340px;margin:0 auto}
+.scoreb .sn{font:800 15px var(--display);color:var(--yel)}
+.sbig{display:flex;justify-content:center;align-items:center;gap:14px;font:800 52px/1.1 var(--display)}
+.sbig i{font-style:normal;opacity:.6}
+.sl{display:flex;justify-content:space-around;font-size:13px;opacity:.8}
+.diffbig{text-align:center;font:800 28px var(--display);margin:10px 0}
+.tbl{border-collapse:collapse;margin:0 auto;width:min(100%,380px)}
+.tbl th,.tbl td{padding:8px 10px;border-bottom:2px solid var(--soft);text-align:center}
+.tbl th{font:800 11px var(--display);color:var(--muted)}.tbl td:first-child{text-align:left;font-weight:800}
+.clock{display:block;margin:0 auto;width:min(100%,260px);height:auto;cursor:pointer}
+.strips{display:grid;gap:14px;margin:6px 0}
+.strips figure{margin:0}
+.strips figcaption{margin-top:4px;font-weight:700;font-size:15px;color:var(--muted);display:flex;align-items:center;gap:6px;min-height:34px}
+.strip{display:flex;height:46px;border:3px solid var(--ink);border-radius:12px;overflow:hidden;background:#fff}
+.strip button{flex:1;min-width:0;border:0;border-right:2px solid var(--ink);background:#fff;padding:0;cursor:pointer}
+.strip button:last-child{border-right:0}
+.strip button.on{background:var(--c,#ff7a00)}
+.strip.still button{cursor:default}
+.chip.pick{background:var(--yel);box-shadow:0 4px 0 var(--edge),inset 0 0 0 3px var(--edge)}
+.expr{font:800 34px/1.25 var(--display);text-align:center;margin:12px 0 4px;color:var(--ink)}
+.expr .qm{color:var(--pos)}
+.dgrid{display:grid;grid-template-columns:repeat(var(--cols,10),1fr);gap:3px;width:min(100%,400px);margin:10px auto;padding:5px;border:3px solid var(--ink);border-radius:12px;background:var(--panel)}
+.dcell{aspect-ratio:1;border:0;border-radius:3px;background:var(--soft);cursor:pointer;padding:0}
+.dcell.on{background:var(--pos)}
+.cmp{display:grid;gap:10px;margin:12px 0}
+.cmprow{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:center;font:800 18px var(--display)}
+.cb{display:block;height:26px;border:3px solid var(--ink);border-radius:10px;overflow:hidden;background:#fff}
+.cb i{display:block;height:100%}
+.lits{display:flex;gap:14px;justify-content:center;align-items:center;flex-wrap:wrap;margin:12px 0}
+.lit{margin:0;display:grid;gap:4px}
+.litrow{display:grid;grid-template-columns:repeat(10,15px);gap:2px;padding:3px;border:3px solid var(--ink);border-radius:8px;background:#fff}
+.litrow i{display:block;height:18px;background:var(--soft);border-radius:2px}
+.litrow i.on{background:#2e8bff}
+.lit figcaption{font:800 15px var(--display);text-align:center}
+.opsign{font:800 30px var(--display)}
+.gviz{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0}
+.gbox{display:grid;grid-template-columns:repeat(var(--cols,4),14px);gap:3px;padding:6px;border:3px solid var(--ink);border-radius:10px;background:var(--panel)}
+.gdot{display:block;width:14px;height:14px;border-radius:50%;background:#ff7a00;border:2px solid var(--edge)}
+.gdot.empty{background:transparent;border:2px dashed var(--muted)}
+.gdots{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.pile2{text-align:center;margin:10px 0;min-height:30px}
+.pile2 .pl{display:block;font-weight:800;margin-bottom:6px}
+.plates{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:12px 0}
+.plate{width:92px;min-height:78px;padding:6px;border:3px solid var(--edge);border-radius:50% 50% 46% 46%/60% 60% 40% 40%;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--edge)}
+.plate .pd{display:flex;flex-wrap:wrap;gap:2px;justify-content:center}
+.plate .pc2{font:800 14px var(--display)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0}
+.day{border:3px solid var(--edge);border-radius:12px;background:#fff;color:var(--edge);padding:8px 2px;text-align:center;font:inherit;cursor:pointer}
+div.day{cursor:default}
+.day b{display:block;font:800 14px var(--display)}
+.day small{font-weight:700;color:#5b5e88}
+.day.start{background:var(--yel)}
+.day.res{background:var(--good);color:#fff}.day.res small{color:#fff}
+.beads{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0}
+.bead{display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.bead i{display:block;width:26px;height:26px;border-radius:50%;border:3px solid var(--edge)}
+.tags{display:grid;gap:8px;margin:10px 0}
+.tag{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag b{font:800 20px var(--display);width:44px}
+.hopnote{min-height:24px}
+</style>
+</head>
+<body>
+<noscript>Для игры нужен включённый JavaScript.</noscript>
+
+<!-- ГЛАВНАЯ -->
+<main id="home" class="wrap">
+  <header class="hero">
+    <div class="ht">
+      <h1>Числовой остров</h1>
+      <p>Минус, модуль, дроби и десятичные дроби — через игры. 22 темы, в каждой по 4 задания. Начни с лаборатории или выбери любую плитку.</p>
+      <div class="pill" id="totalStars"></div>
+    </div>
+    <svg class="isle" viewBox="0 0 320 200" aria-hidden="true"><g stroke="#14123d" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><g stroke="#ffd93d" stroke-width="5"><path d="M258 12v8M258 84v8M214 52h8M294 52h8M227 21l6 6M283 77l6 6M289 21l-6 6M233 77l-6 6"/></g><circle cx="258" cy="52" r="25" fill="#ffd93d"/><path d="M34 74a15 15 0 0 1 29-5a13 13 0 0 1 26 4a11 11 0 0 1-2 21H44a12 12 0 0 1-10-20Z" fill="#fff"/><path d="M0 152q20-14 40 0t40 0 40 0 40 0 40 0 40 0 40 0 40 0V200H0Z" fill="#59a6ff"/><path d="M62 166Q72 124 160 120Q248 124 258 166Q160 182 62 166Z" fill="#ffd93d"/><path d="M146 128Q158 92 140 52" fill="none" stroke="#8a4a24" stroke-width="8"/><path d="M140 52Q116 28 92 44Q120 42 140 52Z" fill="#2fcf7a"/><path d="M140 52Q152 22 180 26Q160 34 140 52Z" fill="#2fcf7a"/><path d="M140 52Q170 44 190 62Q162 56 140 52Z" fill="#2fcf7a"/><path d="M140 52Q124 68 104 88Q122 64 140 52Z" fill="#2fcf7a"/><circle cx="144" cy="58" r="5" fill="#8a4a24"/><path d="M206 144V112"/><rect x="190" y="96" width="34" height="22" rx="5" fill="#fff"/></g><text x="207" y="113" text-anchor="middle" font-family="Unbounded,sans-serif" font-weight="800" font-size="15" fill="#ff3d5a">0</text></svg>
+  </header>
+  <h2 class="sec"><span class="badge">−</span>Минус и модуль</h2>
+  <div class="tiles" id="gridNeg"></div>
+  <h2 class="sec"><span class="badge"><span class="fr"><b>1</b><b>2</b></span></span>Дроби обыкновенные и десятичные</h2>
+  <div class="tiles" id="gridFrac"></div>
+  <footer><button class="link" id="reset">Сбросить прогресс</button></footer>
+</main>
+
+<!-- ЛАБОРАТОРИЯ -->
+<main id="lab" class="wrap" hidden>
+  <div class="bar"><button class="back" id="labBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Меню</button><div class="ttl"><span class="mini" id="labMini" style="--c:#fff"></span>Лаборатория минуса</div></div>
+  <div class="panel">
+    <p style="margin:0 0 6px"><b>Одно число — четыре смысла.</b> Двигай ползунок и смотри, как «минус» выглядит в лифте, на градуснике, в кошельке и на прямой.</p>
+    <div class="big-n" id="labN">0</div>
+    <input type="range" class="labrange" id="labRange" min="-6" max="6" step="1" value="0" aria-label="Число от −6 до 6">
+    <div class="cols">
+      <div class="col"><h3>Лифт</h3><div id="labLift"></div></div>
+      <div class="col"><h3>Градусник</h3><div id="labTherm"></div></div>
+      <div class="col"><h3>Кошелёк</h3><div class="pile" id="labPile"></div></div>
+    </div>
+    <ul class="facts" id="labFacts"></ul>
+    <h3 class="sub">Зеркало нуля</h3>
+    <div id="labLine"></div>
+    <p class="note" id="labMirror"></p>
+  </div>
+</main>
+
+<!-- ИГРА -->
+<main id="game" class="wrap" hidden>
+  <div class="bar">
+    <button class="back" id="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Меню</button>
+    <div class="ttl" id="gTitle"></div>
+    <div class="dots" id="dots"></div>
+  </div>
+  <section id="introCard" class="panel intro" hidden>
+    <div class="medal" id="introEmoji"></div>
+    <p id="introText"></p>
+    <button class="btn" id="go">Поехали!</button>
+  </section>
+  <section id="play" class="panel" hidden>
+    <div class="q" id="q"></div>
+    <div id="stage"></div>
+    <div class="fb" id="fb" role="status" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn ghost" id="again">↻ Заново</button>
+      <button class="btn" id="next" hidden>Дальше</button>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* ================= помощники ================= */
+const MINUS='\u2212';
+const num=n=>n<0?MINUS+(-n):String(n);
+const sg=n=>n>0?'+'+n:num(n);
+const $=(s,r=document)=>r.querySelector(s);
+const h=(t,c,html)=>{const e=document.createElement(t);if(c)e.className=c;if(html!=null)e.innerHTML=html;return e};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const fr=(n,d)=>`<span class="fr"><b>${n}</b><b>${d}</b></span>`;
+const qtxt=q=>{if(q%4===0)return num(q/4);const g=gcd(q,4);const n=q/g,d=4/g;return (n<0?MINUS:'')+Math.abs(n)+'/'+d};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const NS='http://www.w3.org/2000/svg';
+
+let save={};
+try{save=JSON.parse(localStorage.getItem('chislovoy-ostrov')||'{}')||{}}catch(e){save={}}
+const persist=()=>{try{localStorage.setItem('chislovoy-ostrov',JSON.stringify(save))}catch(e){}};
+
+/* ================= ядро игры ================= */
+const WORLDS=[];
+const views={home:$('#home'),lab:$('#lab'),game:$('#game')};
+const show=v=>{TOK++;G.lock=false;stage.classList.remove('locked');stage.removeAttribute('inert');$('#again').disabled=false;for(const k in views)views[k].hidden=k!==v;window.scrollTo({top:0})};
+const fb=$('#fb'),stage=$('#stage'),nextBtn=$('#next');
+let G={w:null,l:0,mist:0,over:false,lock:false};
+let LOCK_SEC=20; /* пауза после неправильного ответа */
+
+let TOK=0; /* номер уровня: отложенные действия старого уровня не должны срабатывать в новом */
+const later=(fn,ms)=>{const t=TOK;setTimeout(()=>{if(t===TOK)fn()},ms)};
+function setLock(on){
+  G.lock=on;stage.classList.toggle('locked',on);
+  if(on)stage.setAttribute('inert','');else stage.removeAttribute('inert');
+  $('#again').disabled=on;renderDots();
+}
+function startLock(){
+  setLock(true);const end=Date.now()+LOCK_SEC*1000,tok=TOK;
+  const tick=()=>{
+    if(tok!==TOK||!G.lock)return;
+    const ms=end-Date.now(),t=$('#waitTxt'),bar=$('#waitBar');
+    if(ms<=0){setLock(false);if(t)t.textContent='Можно пробовать снова.';if(bar)bar.style.width='0%';return}
+    if(t)t.innerHTML=`Прочитай подсказку и подумай. Снова можно через <b>${Math.ceil(ms/1000)}</b> с`;
+    if(bar)bar.style.width=(ms/(LOCK_SEC*1000)*100)+'%';
+    setTimeout(tick,250);
+  };tick();
+}
+const api={
+  get over(){return G.over||G.lock},
+  win(msg){
+    if(G.over)return;G.over=true;
+    const stars=Math.max(1,3-G.mist);
+    const a=save[G.w.id]=save[G.w.id]||[];a[G.l]=Math.max(a[G.l]||0,stars);persist();
+    fb.className='fb good';fb.innerHTML=`<span class="stars" role="img" aria-label="${stars} из 3 звёзд">${starsHtml(stars)}</span><span>${msg}</span>`;
+    nextBtn.hidden=false;nextBtn.textContent=G.l<G.w.levels.length-1?'Дальше':'Закончить мир';
+    renderDots();
+  },
+  miss(msg){
+    if(G.over)return;G.mist++;
+    fb.className='fb bad';fb.innerHTML=`<div>${msg}</div><div class="wait"><span id="waitTxt"></span><span class="wbar"><i id="waitBar"></i></span></div>`;
+    stage.classList.remove('shake');void stage.offsetWidth;stage.classList.add('shake');
+    startLock();
+  },
+  fail(msg){G.over=true;fb.className='fb bad';fb.innerHTML=msg},
+  info(msg){fb.className='fb info';fb.innerHTML=msg}
+};
+
+function renderDots(){
+  const box=$('#dots');box.innerHTML='';
+  G.w.levels.forEach((_,i)=>{
+    const st=(save[G.w.id]||[])[i]||0;
+    const d=h('button','dot'+(st?' done':'')+(i===G.l?' cur':''),String(i+1));d.disabled=G.lock;
+    d.setAttribute('aria-label','Уровень '+(i+1));
+    d.onclick=()=>{G.l=i;startLevel()};box.append(d);
+  });
+}
+function openWorld(w){
+  G.w=w;G.l=0;show('game');
+  $('#gTitle').innerHTML=`<span class="mini" style="--c:${COLORS[w.id]}">${ICONS[w.id]}</span><span>${w.title}</span>`;
+  $('#introEmoji').innerHTML=ICONS[w.id];$('#introEmoji').style.setProperty('--c',COLORS[w.id]);$('#introText').innerHTML=w.intro;
+  $('#introCard').hidden=false;$('#play').hidden=true;renderDots();
+}
+function startLevel(){
+  const lv=G.w.levels[G.l];
+  TOK++;G.mist=0;G.over=false;G.lock=false;stage.classList.remove('locked');stage.removeAttribute('inert');$('#again').disabled=false;
+  $('#introCard').hidden=true;$('#play').hidden=false;
+  $('#q').innerHTML=lv.q;stage.innerHTML='';fb.className='fb';fb.innerHTML='';
+  nextBtn.hidden=true;$('#again').hidden=false;renderDots();
+  lv.run(stage);
+}
+function finish(){
+  const got=(save[G.w.id]||[]).reduce((a,b)=>a+(b||0),0),mx=G.w.levels.length*3;
+  $('#q').innerHTML='Тема пройдена!';stage.innerHTML='';fb.className='fb';
+  stage.append(h('div','finale',`<span class="stars big">${starsHtml(3)}</span><div class="fin">${got} из ${mx} звёзд</div>`));
+  const row=h('div','actions');
+  const a=h('button','btn ghost','Пройти ещё раз');a.onclick=()=>{G.l=0;startLevel()};
+  const b=h('button','btn','К карте миров');b.onclick=goHome;
+  row.append(a,b);stage.append(row);
+  nextBtn.hidden=true;$('#again').hidden=true;
+}
+nextBtn.onclick=()=>{G.l<G.w.levels.length-1?(G.l++,startLevel()):finish()};
+$('#again').onclick=startLevel;
+$('#go').onclick=startLevel;
+$('#back').onclick=goHome;
+$('#labBack').onclick=goHome;
+
+/* общие элементы */
+function numOpts(ans,wrongs,fmt=sg){
+  const u=[...new Set(wrongs.filter(x=>x!==ans))].slice(0,3);
+  return shuffle([ans,...u]).map(v=>({label:fmt(v),value:v}));
+}
+function choices(st,opts,correct,okMsg,noMsg,onOk){
+  const box=h('div','choices');
+  opts.forEach(o=>{
+    const b=h('button','chip',o.label);
+    b.onclick=()=>{
+      if(api.over||b.disabled)return;
+      if(o.value===correct){b.classList.add('ok');if(onOk)onOk();api.win(okMsg)}
+      else{b.classList.add('no');b.disabled=true;api.miss(typeof noMsg==='function'?noMsg(o):noMsg)}
+    };
+    box.append(b);
+  });
+  st.append(box);return box;
+}
+function checkBtn(st,fn){
+  const d=h('div','choices');const b=h('button','btn','Проверить');
+  b.onclick=()=>{if(!api.over)fn()};d.append(b);st.append(d);
+}
+const world=o=>WORLDS.push(o);
+
+/* ================= МИР 1. Лифт ================= */
+function building(st,{min,max,start,onPick}){
+  const H=44,wrap=h('div','bld');
+  for(let f=max;f>=min;f--){
+    const tag=f===0?'земля':f===-1?'подвал':f<-1?'глубже':'';
+    const r=h('button','floor '+(f<0?'under':f===0?'ground':'above'),`<span class="fn">${num(f)}</span><span class="ft">${tag}</span>`);
+    r.setAttribute('aria-label','этаж '+num(f));r.onclick=()=>onPick(f);wrap.append(r);
+  }
+  const car=h('div','car','<div class="cabin"></div>');wrap.append(car);
+  const move=f=>{car.style.transform=`translateY(${(max-f)*H}px)`};
+  move(start);st.append(wrap);return {move};
+}
+const liftLevel=(q,start,ans,hint,ok)=>({q,run(st){
+  const b=building(st,{min:-3,max:5,start,onPick:f=>{
+    if(api.over)return;b.move(f);
+    if(f===ans)api.win(ok);
+    else{api.miss(`Ты выбрал этаж ${num(f)}. ${hint}`);later(()=>{if(!G.over)b.move(start)},900)}
+  }});
+}});
+world({id:'lift',title:'Лифт',sub:'Этаж ниже нуля',group:'neg',
+  intro:'В доме есть подвал. Первый этаж — это <b>0</b>. Вверх: 1, 2, 3. А вниз — подвал и парковка: <b>−1, −2</b>. Минус значит «ниже нуля», а вовсе не «ничего».',
+  levels:[
+    liftLevel('Лифт стоит на этаже <b>0</b>. Отвези его в подвал, на этаж <b>−2</b>.',0,-2,'Подвал находится под землёй, то есть ниже нуля. Ищи этажи под зелёной линией.','Верно! −2 — это два этажа ниже нуля.'),
+    liftLevel('Лифт на этаже <b>2</b> едет вниз на <b>4</b> этажа. Где он остановится?',2,-2,'Сначала спустись на 2 этажа до нуля, потом ещё на 2 вниз.','2 − 4 = −2: два этажа до земли и ещё два — в подвал.'),
+    liftLevel('Лифт на этаже <b>−3</b> едет вверх на <b>5</b> этажей. Куда он приедет?',-3,2,'От −3 до нуля — 3 этажа вверх. Осталось ещё 2.','−3 + 5 = 2: три этажа до земли и ещё два вверх.'),
+    liftLevel('Лифт на этаже <b>−1</b>. Сначала он поднялся на <b>4</b>, потом спустился на <b>6</b>. Где он?',-1,-3,'Считай по шагам: −1 + 4 = 3. Потом 3 − 6.','−1 + 4 = 3, потом 3 − 6 = −3. Лифт в подвале.')
+  ]});
+
+/* ================= МИР 2. Долги и сокровища ================= */
+const debtLevel=(q,c0,d0,ans,okMsg)=>({q,run(st){
+  let c=c0,d=d0,sc=-1,sd=-1,busy=false,asked=false;
+  const lc=h('div','rowlabel','Монеты (+1)'),rc=h('div','row'),ld=h('div','rowlabel','Долговые расписки (−1)'),rd=h('div','row');
+  st.append(lc,rc,ld,rd);
+  let cb=[],db=[];
+  const draw=()=>{
+    rc.innerHTML='';rd.innerHTML='';cb=[];db=[];
+    for(let i=0;i<c;i++){const b=h('button','tok coin'+(i===sc?' sel':''),'+1');b.setAttribute('aria-label','монета');b.onclick=()=>pick('c',i);rc.append(b);cb.push(b)}
+    for(let i=0;i<d;i++){const b=h('button','tok debt'+(i===sd?' sel':''),'−1');b.setAttribute('aria-label','долг');b.onclick=()=>pick('d',i);rd.append(b);db.push(b)}
+    if(!c)rc.innerHTML='<span class="note">нет монет</span>';
+    if(!d)rd.innerHTML='<span class="note">нет долгов</span>';
+  };
+  const pick=(t,i)=>{
+    if(busy||asked)return;
+    if(t==='c')sc=sc===i?-1:i;else sd=sd===i?-1:i;
+    if(sc>=0&&sd>=0){
+      busy=true;cb[sc].classList.add('pop');db[sd].classList.add('pop');
+      later(()=>{c--;d--;sc=sd=-1;busy=false;draw();after()},350);
+    }else draw();
+  };
+  const after=()=>{
+    if(asked||(c>0&&d>0))return;asked=true;
+    st.append(h('div','note','Больше нечем гасить долги. Какой у тебя теперь баланс?'));
+    choices(st,numOpts(ans,[-ans,c0+d0,0,c0,-d0]),ans,okMsg,o=>`${sg(o.value)}? Посчитай, чего осталось больше: монет (${c}) или долгов (${d}).`);
+  };
+  draw();st.prepend(h('div','note','Нажми на монету, потом на расписку: монета гасит долг.'));
+}});
+world({id:'debts',title:'Долги и сокровища',sub:'Монета гасит долг',group:'neg',
+  intro:'Монета — это <b>+1</b>. Долговая расписка — это <b>−1</b>. Если отдать монету за долг, обе исчезнут: <b>+1 + (−1) = 0</b>. Минус — это долг, который нужно закрыть.',
+  levels:[
+    debtLevel('У тебя <b>3 монеты</b> и <b>3 долга</b>. Погаси всё, что можно.',3,3,0,'Монеты и долги исчезли парами: 3 + (−3) = 0.'),
+    debtLevel('У тебя <b>5 монет</b> и <b>2 долга</b>. Отдай монеты за долги. Что останется?',5,2,3,'5 + (−2) = +3: два долга закрыты, ещё 3 монеты в запасе.'),
+    debtLevel('У тебя <b>2 монеты</b> и <b>5 долгов</b>. Что останется после расчёта?',2,5,-3,'2 + (−5) = −3: монеты кончились, а три долга остались.'),
+    {q:'У тебя долг <b>−3</b>. Нажимай кнопки так, чтобы баланс стал ровно <b>+2</b>.',run(st){
+      let bal=-3;const target=2;
+      const out=h('div','bal neg','−3'),tray=h('div','row'),log=h('div','note','Начало: −3');
+      const draw=()=>{
+        out.textContent=sg(bal);out.className='bal '+(bal<0?'neg':bal>0?'pos':'');
+        tray.innerHTML='';
+        for(let i=0;i<Math.abs(bal);i++)tray.append(h('span','tok '+(bal>0?'coin':'debt'),bal>0?'+1':'−1'));
+        if(!bal)tray.innerHTML='<span class="note">пусто: ни монет, ни долгов</span>';
+      };
+      const act=(d)=>{if(api.over)return;const was=bal;bal+=d;log.textContent=`${num(was)} ${d>0?'+':'−'} 1 = ${num(bal)}`;draw();if(bal===target)api.win('Баланс +2! Чтобы из −3 дойти до +2, нужно прибавить 5.')};
+      const add=h('button','btn','+1 монета'),sub=h('button','btn ghost','−1 взять долг');
+      add.onclick=()=>act(1);sub.onclick=()=>act(-1);
+      const row=h('div','choices');row.append(sub,add);
+      st.append(out,tray,row,log);draw();
+    }}
+  ]});
+
+/* ================= МИР 3. Термометр ================= */
+const mini=v=>{
+  const mh=Math.round((v+15)/30*100),col=v<0?'var(--neg)':v>0?'var(--pos)':'#999';
+  return `<svg viewBox="0 0 40 140" width="44" height="140" aria-hidden="true"><rect x="13" y="6" width="14" height="108" rx="7" style="fill:var(--tube);stroke:var(--ink);stroke-width:3"/><rect x="16.5" y="${112-mh}" width="7" height="${mh+2}" style="fill:${col}"/><circle cx="20" cy="120" r="12" style="fill:${col};stroke:var(--ink);stroke-width:3"/><line x1="5" y1="${112-50}" x2="13" y2="${112-50}" style="stroke:var(--ink);stroke-width:2"/></svg>`;
+};
+function thermo(st,{min,max,value,onPick}){
+  const R=22,n=max-min+1;
+  const wrap=h('div','thermo'),tw=h('div','tubewrap'),tube=h('div','tube'),fill=h('div','mer'),bulb=h('div','bulb'),rows=h('div','trows');
+  tube.style.height=(n*R)+'px';tube.append(fill);tw.append(tube,bulb);
+  for(let t=max;t>=min;t--){
+    const b=h('button','tick'+(t===0?' zero':''),`<i></i><span>${num(t)}°${t===0?' — вода замерзает':''}</span>`);
+    b.onclick=()=>onPick(t);rows.append(b);
+  }
+  wrap.append(tw,rows);st.append(wrap);
+  const set=v=>{const col=v<0?'var(--neg)':v>0?'var(--pos)':'var(--muted)';fill.style.height=((v-min+.5)*R)+'px';fill.style.background=col;bulb.style.background=col};
+  set(value);return {set};
+}
+world({id:'thermo',title:'Градусник',sub:'Холоднее нуля',group:'neg',
+  intro:'<b>0°</b> — точка, где вода замерзает. Всё, что холоднее, — с минусом. Странность: у минусов чем <b>больше</b> число, тем <b>холоднее</b>. Поэтому −10° холоднее, чем −5°.',
+  levels:[
+    {q:'Сегодня в Астане <b>−5°</b>. Нажми на деление, чтобы ртуть показала такую температуру.',run(st){
+      const t=thermo(st,{min:-10,max:10,value:0,onPick:v=>{if(api.over)return;t.set(v);v===-5?api.win('Верно! −5° — это на пять градусов ниже нуля.'):api.miss(`Ты поставил ${num(v)}°. ${v>0?'Это выше нуля, а нам нужен мороз.':'Считай вниз от нуля: −1, −2, −3…'}`)}});
+    }},
+    {q:'Какой день <b>холоднее</b>: с температурой <b>−5°</b> или <b>−10°</b>?',run(st){
+      const d=h('div','cards2');
+      [-5,-10].forEach(v=>{
+        const b=h('button','tcard',mini(v)+`<span>${num(v)}°</span>`);
+        b.onclick=()=>{if(api.over)return;if(v===-10){b.classList.add('ok');api.win('−10° холоднее: ртуть упала ниже. Чем дальше от нуля вниз, тем холоднее.')}else{b.classList.add('no');api.miss('Посмотри на ртуть: у какого градусника она ниже? Чем ниже, тем холоднее.')}};
+        d.append(b);
+      });st.append(d);
+    }},
+    {q:'Расставь температуры от <b>самой холодной</b> к самой тёплой. Нажимай карточки по порядку.',run(st){
+      const vals=[-7,3,-2,0,-10],sorted=[...vals].sort((a,b)=>a-b);let k=0;
+      const row=h('div','sortrow'),pool=h('div','choices');
+      shuffle(vals).forEach(v=>{
+        const b=h('button','chip',num(v)+'°');
+        b.onclick=()=>{
+          if(api.over||b.disabled)return;
+          if(v===sorted[k]){b.disabled=true;b.classList.add('ok');row.append(h('span','sorted',num(v)+'°'));k++;if(k===sorted.length)api.win('Готово: −10, −7, −2, 0, 3. Чем левее на прямой, тем холоднее.')}
+          else api.miss(`${num(v)}° — не самая холодная из оставшихся. У минусов холоднее то число, у которого цифра больше.`);
+        };pool.append(b);
+      });
+      st.append(row,pool);
+    }},
+    {q:'Утром в Астане <b>−3°</b>. К обеду потеплело на <b>5°</b>. Нажми на температуру обеда.',run(st){
+      const t=thermo(st,{min:-10,max:10,value:-3,onPick:v=>{if(api.over)return;t.set(v);v===2?api.win('−3 + 5 = 2: три градуса до нуля и ещё два выше нуля.'):api.miss(`Теперь ${num(v)}°. Потеплеть — значит подняться вверх по градуснику на 5 делений от −3.`)}});
+    }}
+  ]});
+
+/* ================= МИР 4. Числовая прямая ================= */
+function numline(st,tq){
+  const min=-3,max=3,W=700,P=40,U=(W-2*P)/(max-min),X=v=>P+(v-min)*U;
+  let s=`<svg viewBox="0 0 ${W} 190" class="nl" role="img" aria-label="Числовая прямая от −3 до 3">`;
+  s+=`<rect x="${P-10}" y="14" width="${X(0)-P+10}" height="100" rx="12" style="fill:var(--negbg)"/>`;
+  s+=`<rect x="${X(0)}" y="14" width="${W-P-X(0)+10}" height="100" rx="12" style="fill:var(--posbg)"/>`;
+  s+=`<text x="${X(-1.5)}" y="38" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--neg)">отрицательные</text>`;
+  s+=`<text x="${X(1.5)}" y="38" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--pos)">положительные</text>`;
+  s+=`<line x1="14" y1="86" x2="${W-14}" y2="86" style="stroke:var(--ink);stroke-width:4"/>`;
+  s+=`<path d="M${W-8} 86l-16-9v18zM8 86l16-9v18z" style="fill:var(--ink)"/>`;
+  for(let q=min*4;q<=max*4;q++){
+    const x=X(q/4),len=q%4===0?30:q%2===0?22:13;
+    s+=`<line x1="${x}" y1="86" x2="${x}" y2="${86+len}" style="stroke:var(--ink);stroke-width:${q%4===0?4:3}"/>`;
+    if(q%4===0)s+=`<text x="${x}" y="148" text-anchor="middle" font-size="30" font-weight="800" style="fill:var(--ink)">${num(q/4)}</text>`;
+    else if(q%2===0)s+=`<text x="${x}" y="130" text-anchor="middle" font-size="21" font-weight="700" style="fill:var(--muted)">${qtxt(q)}</text>`;
+  }
+  s+=`<circle cx="${X(0)}" cy="86" r="8" style="fill:var(--hot)"/><g id="mk"></g><rect x="0" y="0" width="${W}" height="190" fill="transparent"/></svg>`;
+  const box=h('div','',s);st.append(box);
+  const svg=$('svg',box),mk=$('#mk',box);
+  svg.addEventListener('click',e=>{
+    if(api.over)return;
+    const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W;
+    const q=clamp(Math.round(((x-P)/U+min)*4),min*4,max*4),cx=X(q/4);
+    mk.innerHTML=`<path d="M${cx} 86V50l24 9-24 9" style="fill:var(--pos);stroke:var(--ink);stroke-width:3;stroke-linejoin:round"/><circle cx="${cx}" cy="86" r="11" style="fill:var(--sun);stroke:var(--ink);stroke-width:3"/><text x="${cx}" y="180" text-anchor="middle" font-size="30" font-weight="800" style="fill:var(--neg)">${qtxt(q)}</text>`;
+    if(q===tq)api.win(`Верно! Флажок стоит на ${qtxt(q)}.`);
+    else api.miss(Math.sign(q)!==Math.sign(tq)?`Ты попал на ${qtxt(q)}. Минус — это слева от нуля, плюс — справа.`:`Ты попал на ${qtxt(q)}. Между соседними целыми числами — четыре четверти. Посчитай деления от нуля.`);
+  });
+}
+world({id:'line',title:'Числовая прямая',sub:'Минус и дроби вместе',group:'neg',
+  intro:'Все числа живут на одной прямой. Справа от нуля — положительные, слева — отрицательные. Между целыми числами есть место для дробей: половина, четверть… и слева от нуля их тоже полно!',
+  levels:[
+    {q:'Найди на прямой число <b>−2</b>. Нажми в нужное место.',run:st=>numline(st,-8)},
+    {q:`Где живёт ${fr(1,2)}? Это ровно посередине между 0 и 1.`,run:st=>numline(st,2)},
+    {q:`Теперь зеркальное число: <b>−${fr(1,2)}</b>. Оно по другую сторону от нуля, на таком же расстоянии.`,run:st=>numline(st,-2)},
+    {q:`Найди <b>−1${fr(1,4)}</b> — минус одна целая и одна четверть.`,run:st=>numline(st,-5)}
+  ]});
+
+/* ================= МИР 5. Море и небо ================= */
+const SUB='<svg class="ic" viewBox="0 0 60 30" width="56" height="28" aria-hidden="true"><ellipse cx="28" cy="18" rx="24" ry="9" class="a"/><rect x="22" y="6" width="12" height="9" rx="2" class="a"/><path d="M31 6V1h5" style="fill:none"/><circle cx="18" cy="18" r="2.5"/><circle cx="28" cy="18" r="2.5"/><circle cx="38" cy="18" r="2.5"/><path d="M52 18l7-6v12z" class="a"/></svg>';
+const BIRD='<svg class="ic" viewBox="0 0 40 24" width="44" height="26" aria-hidden="true"><path d="M2 6Q12 0 20 12Q28 0 38 6Q28 8 20 20Q12 8 2 6Z" class="a"/></svg>';
+const FISH='<svg class="ic" viewBox="0 0 44 24" width="48" height="26" aria-hidden="true"><ellipse cx="18" cy="12" rx="15" ry="9" class="b"/><path d="M31 12l11-8v16z" class="b"/><circle cx="10" cy="10" r="1.6" style="fill:#14123d"/></svg>';
+const DIVER='<svg class="ic" viewBox="0 0 30 40" width="30" height="40" aria-hidden="true"><circle cx="15" cy="8" r="6" class="a"/><rect x="9" y="6" width="12" height="4" rx="2" class="b"/><path d="M15 14v14M15 18l-8 6M15 18l8 6M15 28l-6 10M15 28l6 10" style="fill:none"/></svg>';
+function sea(st,items){
+  const H=320,sc=h('div','sea');sc.style.height=H+'px';
+  sc.innerHTML='<div class="sky"></div><div class="water"></div><div class="lvl0"><span>0 · уровень моря</span></div>';
+  const top=v=>(50-v)/100*H;
+  [[50,'up'],[25,'up'],[-25,''],[-50,'']].forEach(([v,c])=>{const m=h('div','mk '+c,sg(v));m.style.top=(top(v)-8)+'px';sc.append(m)});
+  items.forEach(it=>{
+    const e=h('div','sitem',`<span class="se">${it.html}</span><span class="stag"></span>`);e.style.left=it.x+'%';sc.append(e);it.el=e;
+  });
+  const set=(it,v)=>{it.v=v;it.el.style.top=(top(v)-18)+'px';it.el.querySelector('.stag').textContent=sg(v)+' м'};
+  items.forEach(it=>set(it,it.v));st.append(sc);return {set,items};
+}
+const seaLevel=(q,items,ans,wrongs,hint,ok,after,fmt)=>({q,run(st){
+  const s=sea(st,items.map(i=>({...i})));
+  choices(st,numOpts(ans,wrongs,fmt),ans,ok,o=>`${(fmt||sg)(o.value)}? ${hint}`,()=>after&&after(s));
+}});
+world({id:'sea',title:'Море и небо',sub:'Выше и ниже воды',group:'neg',
+  intro:'Уровень моря — это <b>0</b>. Всё, что над водой, — плюс: чайки и самолёты. Всё, что под водой, — минус: рыбы и подлодки. Чем глубже, тем число «минуснее».',
+  levels:[
+    seaLevel('Подводная лодка на глубине <b>−30</b> м поднялась на <b>12</b> м. На какой отметке она теперь?',[{html:SUB,v:-30,x:30}],-18,[-42,18,-12],'Когда поднимаешься, число растёт: −30 + 12.','−30 + 12 = −18: лодка всё ещё под водой, но стала ближе к поверхности.',s=>s.set(s.items[0],-18)),
+    seaLevel('Чайка летит на высоте <b>+15</b> м и ныряет вниз на <b>25</b> м за рыбой. Где она оказалась?',[{html:BIRD,v:15,x:35}],-10,[10,40,-40],'Сначала 15 м вниз до воды, потом ещё 10 м под воду.','15 − 25 = −10: чайка нырнула на 10 метров под воду.',s=>s.set(s.items[0],-10)),
+    seaLevel('Чайка на высоте <b>+40</b> м, рыба на глубине <b>−20</b> м. Сколько метров между ними?',[{html:BIRD,v:40,x:20},{html:FISH,v:-20,x:55}],60,[20,80,40],'От чайки до воды 40 м, а от воды до рыбы ещё 20 м. Их надо сложить.','40 + 20 = 60 м. Расстояние считаем через ноль, поэтому числа складываются.',null,String),
+    seaLevel('Водолаз прыгнул с корабля (0), нырнул на <b>12</b> м, поднялся на <b>5</b> м и снова нырнул на <b>9</b> м. Где он?',[{html:DIVER,v:0,x:40}],-16,[-26,-8,16],'Считай по шагам: 0 − 12 = −12, потом −12 + 5 = ?, потом ещё − 9.','0 − 12 = −12, потом +5 → −7, потом −9 → −16.',s=>{const it=s.items[0];s.set(it,-12);later(()=>s.set(it,-7),900);later(()=>s.set(it,-16),1800)})
+  ]});
+
+/* ================= МИР 6. Шаги вперёд и назад ================= */
+const PAWN_ME='<i class="pawn"></i>',PAWN_BOT='<i class="pawn bot"></i>';
+function board(st,{pieces,onPick,min=-6,max=6}){
+  const row=h('div','board'),cells={};
+  for(let v=min;v<=max;v++){
+    const c=h('button','cell'+(v===0?' zero':v<0?' neg':''),`<span class="pc"></span><span class="cn">${num(v)}</span>`);
+    c.setAttribute('aria-label','клетка '+num(v));c.onclick=()=>onPick&&onPick(v);row.append(c);cells[v]=c;
+  }
+  const draw=()=>{
+    for(const v in cells)cells[v].querySelector('.pc').innerHTML='';
+    pieces.forEach(p=>{const s=h('span','',p.e);cells[p.pos].querySelector('.pc').append(s)});
+  };
+  draw();st.append(row);return {draw,cells};
+}
+const stepLevel=(q,start,moves)=>({q,run(st){
+  const p={e:PAWN_ME,pos:start},ans=moves.reduce((a,m)=>a+m,start);
+  st.append(h('div','chiprow',moves.map(m=>`<span class="dice ${m<0?'minus':'plus'}">${sg(m)}</span>`).join('')));
+  const eq=`${num(start)}${moves.map(m=>` ${m<0?'−':'+'} ${Math.abs(m)}`).join('')} = ${num(ans)}`;
+  const b=board(st,{pieces:[p],onPick:v=>{
+    if(api.over)return;
+    if(v===ans){p.pos=v;b.draw();api.win(`Верно: ${eq}. Плюс — вперёд, минус — назад.`)}
+    else api.miss(`Фишка не там. Иди по очереди: плюс — вправо, минус — влево. Начни с клетки ${num(start)}.`);
+  }});
+  st.append(h('div','note',`Фишка стоит на ${num(start)}. Нажми клетку, где она окажется.`));
+}});
+world({id:'steps',title:'Шаги вперёд и назад',sub:'Настольная игра',group:'neg',
+  intro:'Плюс — это шаги <b>вперёд</b> (вправо), минус — шаги <b>назад</b> (влево). Выпало <b>−4</b>? Отступи на 4 клетки. Выпало <b>+3</b>? Шагни на 3 вперёд.',
+  levels:[
+    stepLevel('Фишка на <b>0</b>. Выпало <b>+3</b>. Куда она встанет?',0,[3]),
+    stepLevel('Фишка на <b>−2</b>. Выпало <b>+4</b>, потом <b>−5</b>. Где она теперь?',-2,[4,-5]),
+    stepLevel('Фишка на <b>3</b>. Выпало <b>−4</b>, <b>−2</b> и <b>+1</b>. Где она?',3,[-4,-2,1]),
+    {q:'Гонка с роботом! Кто первым дойдёт до <b>+6</b>? Бросай кубик и сам нажимай, куда встанет фишка.',run(st){
+      const faces=[3,-2,4,1,-1,2],me={e:PAWN_ME,pos:0},bot={e:PAWN_BOT,pos:0};
+      let wait=null,round=0;
+      const info=h('div','note','Ты ходишь первым.'),dice=h('div','bigdice','');
+      const roll=h('button','btn','Бросить кубик');
+      const b=board(st,{pieces:[me,bot],onPick:v=>{
+        if(!wait||api.over)return;
+        if(v===wait.to){
+          me.pos=v;b.draw();const m=wait.m;wait=null;
+          if(me.pos>=6)return api.win('Ты добрался до +6 первым!');
+          info.textContent='Ход робота…';later(botTurn,800);
+        }else api.miss(`Не туда. ${num(me.pos)} ${wait.m<0?'−':'+'} ${Math.abs(wait.m)} = ${num(wait.to)}.`);
+      }});
+      const botTurn=()=>{
+        const m=faces[Math.floor(Math.random()*faces.length)];
+        bot.pos=clamp(bot.pos+m,-6,6);b.draw();round++;
+        info.textContent=`Робот: выпало ${sg(m)}, он на ${num(bot.pos)}.`;
+        if(bot.pos>=6)return api.fail('Робот дошёл до +6 первым. Нажми «Заново» — и отыграйся!');
+        if(round>=10){
+          return me.pos>bot.pos?api.win(`Раунды закончились, и ты впереди: ${num(me.pos)} против ${num(bot.pos)}.`):api.fail(`Раунды закончились: у тебя ${num(me.pos)}, у робота ${num(bot.pos)}. Попробуй ещё!`);
+        }
+        roll.disabled=false;
+      };
+      roll.onclick=()=>{
+        if(wait||api.over||roll.disabled)return;
+        const m=faces[Math.floor(Math.random()*faces.length)],to=clamp(me.pos+m,-6,6);
+        wait={m,to};dice.innerHTML=`<span class="dice ${m<0?'minus':'plus'}">${sg(m)}</span>`;
+        info.textContent=`Выпало ${sg(m)}. Нажми клетку, где окажется фишка (раунд ${round+1} из 10).`;
+        roll.disabled=true;
+      };
+      const wrapC=h('div','choices');wrapC.append(roll);
+      st.append(dice,wrapC,info);
+    }}
+  ]});
+
+/* ================= МИР 7. Пицца ================= */
+function pizza(n,{sel=new Set(),onToggle,size=210}={}){
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 200 200');svg.setAttribute('class','pizza');svg.style.width=size+'px';
+  const R=92;
+  const render=()=>{
+    let s='<circle cx="100" cy="100" r="97" fill="#d9a15b"/>';
+    for(let i=0;i<n;i++){
+      const a0=-Math.PI/2+i*2*Math.PI/n,a1=a0+2*Math.PI/n,am=(a0+a1)/2;
+      s+=`<path data-i="${i}" d="M100 100L${100+R*Math.cos(a0)} ${100+R*Math.sin(a0)}A${R} ${R} 0 0 1 ${100+R*Math.cos(a1)} ${100+R*Math.sin(a1)}Z" fill="${sel.has(i)?'#cf3b3b':'#f6df94'}" stroke="#7a5a2e" stroke-width="2.5" stroke-linejoin="round"/>`;
+      if(sel.has(i))s+=`<circle cx="${100+R*.6*Math.cos(am)}" cy="${100+R*.6*Math.sin(am)}" r="7" fill="#9c1f1f" pointer-events="none"/>`;
+    }
+    svg.innerHTML=s;
+  };
+  render();
+  svg.addEventListener('click',e=>{
+    const p=e.target.closest('path');if(!p||!onToggle)return;
+    const i=+p.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);render();onToggle(sel);
+  });
+  return {svg,sel};
+}
+const pizzaLevel=(q,n,need,ok,hint)=>({q,run(st){
+  const cnt=h('div','note',`Взято: ${fr(0,n)}`);
+  const p=pizza(n,{onToggle:s=>{cnt.innerHTML=`Взято: ${fr(s.size,n)}`}});
+  st.append(p.svg,cnt);
+  checkBtn(st,()=>{p.sel.size===need?api.win(ok):api.miss(`Ты взял ${fr(p.sel.size,n)}. ${hint}`)});
+}});
+world({id:'pizza',title:'Пицца',sub:'Дробь — часть целого',group:'frac',
+  intro:'Дробь показывает часть целого. Внизу — на сколько <b>равных</b> частей разрезали пиццу. Вверху — сколько частей ты взял. Например, <b>3/4</b> — это три куска из четырёх.',
+  levels:[
+    pizzaLevel(`Пицца разрезана на 8 кусков. Возьми <b>половину</b> — ${fr(1,2)} пиццы. Нажимай на куски.`,8,4,'4 из 8 — это половина: 4/8 = 1/2.','Половина — это когда взято столько же, сколько осталось.'),
+    pizzaLevel(`Пицца на 8 кусков. Возьми ${fr(3,4)} пиццы.`,8,6,'Одна четвёртая — 2 куска (8 : 4). Три четверти — 6 кусков: 6/8 = 3/4.','Сначала найди одну четверть: 8 : 4 = 2 куска. Потом умножь на 3.'),
+    {q:'Какой кусок <b>больше</b>: одна восьмая или одна четвёртая пиццы?',run(st){
+      const a=pizza(8,{sel:new Set([0]),size:140}),b=pizza(4,{sel:new Set([0]),size:140});
+      const d=h('div','duo'),fa=h('figure'),fbx=h('figure');
+      fa.append(a.svg,h('div','',`разрезана на 8: ${fr(1,8)}`));fbx.append(b.svg,h('div','',`разрезана на 4: ${fr(1,4)}`));
+      d.append(fa,fbx);st.append(d);
+      choices(st,[{label:fr(1,8),value:'a'},{label:fr(1,4),value:'b'},{label:'Одинаково',value:'e'}],'b',
+        'Одна четвёртая больше! Чем на больше частей режешь, тем меньше каждая часть.',
+        o=>o.value==='a'?'Не торопись: 8 — большое число, но это число кусков. А куски получаются мелкими.':'Сравни куски на картинке: они разного размера.');
+    }},
+    {q:`Слева ${fr(2,4)} пиццы. Закрась на правой пицце <b>столько же</b>, но она разрезана на 8 кусков.`,run(st){
+      const a=pizza(4,{sel:new Set([0,1]),size:140}),b=pizza(8,{size:170,onToggle:s=>{cnt.innerHTML=`Взято: ${fr(s.size,8)}`}});
+      const cnt=h('div','note',`Взято: ${fr(0,8)}`);
+      const d=h('div','duo');d.append(a.svg,b.svg);st.append(d,cnt);
+      checkBtn(st,()=>b.sel.size===4?api.win('2/4 = 4/8 = 1/2. Это одно и то же количество пиццы, записанное по-разному!'):api.miss(`Ты взял ${fr(b.sel.size,8)}, а слева закрашена ровно половина пиццы.`));
+    }}
+  ]});
+
+/* ================= МИР 8. Шоколадка ================= */
+function choc(cols,rows,{sel=new Set(),onToggle,group=0,colors,width=230}={}){
+  const g=h('div','choc');g.style.gridTemplateColumns=`repeat(${cols},1fr)`;g.style.width=width+'px';g.style.maxWidth='100%';
+  const btns=[];
+  const draw=()=>btns.forEach((b,i)=>{
+    b.className='piece'+((group&&Math.floor(i/group)%2)?' alt':'')+(colors&&colors[i]?' '+colors[i]:'')+(sel.has(i)?' sel':'');
+  });
+  for(let i=0;i<cols*rows;i++){
+    const b=h('button','piece',colors&&colors[i]==='c3'?'?':'');
+    b.setAttribute('aria-label','долька '+(i+1));
+    b.onclick=()=>{if(!onToggle)return;sel.has(i)?sel.delete(i):sel.add(i);draw();onToggle(sel)};
+    g.append(b);btns.push(b);
+  }
+  draw();return {el:g,sel};
+}
+world({id:'choc',title:'Шоколадка',sub:'Поделим по-честному',group:'frac',
+  intro:'Плитка из 12 долек. Если делить её на всё больше частей, каждая часть становится меньше. А ещё: <b>1/3 и 2/6 — это одно и то же количество шоколада</b>, записанное по-разному.',
+  levels:[
+    {q:`Раздели 12 долек поровну между <b>3 друзьями</b>. Выбери дольки, которые достанутся <b>одному</b> другу (это ${fr(1,3)} плитки).`,run(st){
+      const cnt=h('div','note','Выбрано долек: 0');
+      const c=choc(4,3,{group:4,onToggle:s=>{cnt.textContent='Выбрано долек: '+s.size}});
+      st.append(c.el,cnt);
+      checkBtn(st,()=>c.sel.size===4?api.win('12 : 3 = 4 дольки. Значит, 1/3 плитки — это 4 дольки из 12.'):api.miss(`Ты выбрал ${c.sel.size}. Раздели 12 на 3 поровну: сколько долек получит каждый?`));
+    }},
+    {q:`Теперь плитка поделена на <b>6 равных частей</b> — по две дольки в каждой. Выбери ${fr(2,6)} плитки.`,run(st){
+      const cnt=h('div','note','Выбрано долек: 0');
+      const c=choc(4,3,{group:2,onToggle:s=>{cnt.textContent='Выбрано долек: '+s.size}});
+      st.append(c.el,cnt);
+      checkBtn(st,()=>c.sel.size===4?api.win('Одна шестая — 2 дольки, две шестых — 4 дольки. Столько же, сколько в 1/3!'):api.miss(`Ты выбрал ${c.sel.size}. Одна шестая — это пара долек. Сколько долек в двух таких частях?`));
+    }},
+    {q:`Мне досталась ${fr(1,3)} плитки, а тебе — ${fr(2,6)}. Кому досталось <b>больше</b> шоколада?`,run(st){
+      const a=choc(4,3,{group:4,sel:new Set([0,1,2,3]),width:150}),b=choc(4,3,{group:2,sel:new Set([0,1,2,3]),width:150});
+      const d=h('div','duo'),f1=h('figure'),f2=h('figure');
+      f1.append(a.el,h('div','',`мне: ${fr(1,3)}`));f2.append(b.el,h('div','',`тебе: ${fr(2,6)}`));
+      d.append(f1,f2);st.append(d);
+      choices(st,[{label:'Мне',value:'a'},{label:'Тебе',value:'b'},{label:'Поровну',value:'e'}],'e','Поровну! В обоих случаях 4 дольки из 12. Дроби 1/3 и 2/6 равны.',()=>'Посчитай выделенные дольки на обеих плитках.');
+    }},
+    {q:`Алия взяла ${fr(1,2)} плитки, Дамир — ${fr(1,4)}. Какая часть плитки останется <b>Ляззат</b>?`,run(st){
+      const colors=Array.from({length:12},(_,i)=>i<6?'c1':i<9?'c2':'c3');
+      st.append(h('div','duo',''));
+      const c=choc(4,3,{colors,width:230});st.lastChild.append(c.el);
+      st.append(h('div','note','<span class="sw c1"></span>Алия &nbsp; <span class="sw c2"></span>Дамир &nbsp; <b>?</b> Ляззат'));
+      choices(st,[{label:fr(1,4),value:'a'},{label:fr(1,3),value:'b'},{label:fr(1,2),value:'c'},{label:fr(1,6),value:'d'}],'a',
+        '1/2 = 6 долек, 1/4 = 3 дольки. Осталось 12 − 9 = 3 дольки, и это 3/12 = 1/4.',()=>'Посчитай дольки: у Алии 6, у Дамира 3. Сколько остаётся из 12, и какую часть плитки это составляет?');
+    }}
+  ]});
+
+/* ================= МИР 9. Стакан и линейка ================= */
+const f8=k=>{if(k===0)return '0';const g=gcd(k,8);return k/g===1&&8/g===1?'1':`${k/g}/${8/g}`};
+function cupSvg(k){
+  const wh=200*k/8;
+  let s=`<svg viewBox="0 0 230 270" class="cup" role="img" aria-label="Мерный стакан"><defs><clipPath id="cl"><rect x="62" y="34" width="96" height="206" rx="10"/></clipPath></defs>`;
+  s+=`<rect x="62" y="34" width="96" height="206" rx="10" style="fill:var(--glass)"/>`;
+  s+=`<rect x="62" y="${240-wh}" width="96" height="${wh}" clip-path="url(#cl)" style="fill:var(--neg);opacity:.75"/>`;
+  s+=`<rect x="60" y="32" width="100" height="210" rx="12" style="fill:none;stroke:var(--ink);stroke-width:4"/>`;
+  [[1,'1'],[.75,'3/4'],[.5,'1/2'],[.25,'1/4']].forEach(([f,t])=>{
+    const y=240-200*f;
+    s+=`<line x1="160" y1="${y}" x2="178" y2="${y}" style="stroke:var(--ink);stroke-width:3"/><text x="184" y="${y+5}" font-size="16" font-weight="700" style="fill:var(--ink)">${t}</text>`;
+  });
+  return s+'</svg>';
+}
+const cupLevel=(q,need,ok)=>({q,run(st){
+  let k=0;
+  const holder=h('div','',cupSvg(0)),lab=h('div','note','Налито: 0'),rng=h('input','slide');
+  rng.type='range';rng.min=0;rng.max=8;rng.step=1;rng.value=0;rng.setAttribute('aria-label','Сколько налить');
+  rng.oninput=()=>{k=+rng.value;holder.innerHTML=cupSvg(k);lab.textContent='Налито: '+f8(k)+' стакана'};
+  st.append(holder,rng,lab);
+  checkBtn(st,()=>k===need?api.win(ok):api.miss(`Сейчас налито ${f8(k)} стакана. Ориентируйся на риски справа: 1/4, 1/2, 3/4.`));
+}});
+function rulerSvg(len){
+  const W=700,P=30,U=(W-2*P)/10,xe=P+len*U;
+  let s=`<svg viewBox="0 0 ${W} 190" class="rul" role="img" aria-label="Карандаш рядом с линейкой"><rect x="${P-10}" y="100" width="${W-2*P+20}" height="70" rx="6" style="fill:var(--ruler);stroke:var(--ink);stroke-width:3"/>`;
+  for(let i=0;i<=100;i++){
+    const x=P+i*U/10,l=i%10===0?34:i%5===0?24:14;
+    s+=`<line x1="${x}" y1="100" x2="${x}" y2="${100+l}" style="stroke:var(--ink);stroke-width:${i%10===0?3:1.5}"/>`;
+    if(i%10===0)s+=`<text x="${x}" y="158" text-anchor="middle" font-size="18" font-weight="800" style="fill:var(--ink)">${i/10}</text>`;
+  }
+  s+=`<rect x="${P}" y="46" width="${xe-P-38}" height="40" style="fill:#ffc531;stroke:var(--ink);stroke-width:3"/><rect x="${P}" y="46" width="22" height="40" style="fill:#ff8fa3;stroke:var(--ink);stroke-width:3"/><path d="M${xe-38} 46L${xe} 66L${xe-38} 86Z" style="fill:#f4d9a8;stroke:var(--ink);stroke-width:3"/><path d="M${xe-9} 61L${xe} 66L${xe-9} 71Z" style="fill:var(--ink)"/>`;
+  s+=`<line x1="${xe}" y1="40" x2="${xe}" y2="100" style="stroke:var(--hot);stroke-width:2;stroke-dasharray:4 3"/></svg>`;
+  return s;
+}
+world({id:'cup',title:'Стакан и линейка',sub:'Дроби на кухне',group:'frac',
+  intro:'Дроби встречаются на кухне и в мастерской: <b>полстакана</b> воды, <b>четверть</b> стакана молока, карандаш в <b>семь с половиной</b> сантиметров. Давай измерять!',
+  levels:[
+    cupLevel(`Налей в мерный стакан <b>полстакана</b> воды (${fr(1,2)}). Двигай ползунок.`,4,'Верно! Вода дошла до отметки 1/2.'),
+    cupLevel(`По рецепту нужна <b>четверть стакана</b> (${fr(1,4)}) молока.`,2,'Четверть — это половина от половины. Отметка 1/4 — самая нижняя.'),
+    cupLevel(`Налей ${fr(3,4)} стакана сока.`,6,'3/4 — это три четверти: на одну четвертинку меньше, чем полный стакан.'),
+    {q:'Измерь карандаш линейкой. Сколько в нём <b>сантиметров</b>?',run(st){
+      st.append(h('div','',rulerSvg(7.5)));
+      choices(st,shuffle(['7','7½','8','7¼']).map(v=>({label:v,value:v})),'7½','Карандаш — 7½ см: целых 7 и ещё половинка между 7 и 8.',o=>`Конец карандаша не на отметке ${o.value}. Посмотри, какая отметка точно под красным пунктиром: она между 7 и 8.`);
+    }}
+  ]});
+
+/* ================= МИР 10. Музыка ================= */
+const NOTES={
+  w:{k:'w',n:'Целая · 4',b:4,c:'#2447b5',l:'1'},
+  h:{k:'h',n:'Половинная · 2',b:2,c:'#27824a',l:'½'},
+  q:{k:'q',n:'Четвертная · 1',b:1,c:'#d4650f',l:'¼'},
+  e:{k:'e',n:'Восьмая · ½',b:.5,c:'#8a3d8a',l:'⅛'}
+};
+const bt=b=>b===.5?'½':String(b);
+let AC=null;
+function playNotes(list){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    let t=AC.currentTime+.05;const beat=.42;
+    list.forEach(x=>{
+      const o=AC.createOscillator(),g=AC.createGain();
+      o.type='triangle';o.frequency.value=x.b>=4?262:x.b>=2?330:x.b>=1?392:523;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+x.b*beat-.03);
+      o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+x.b*beat);t+=x.b*beat;
+    });
+  }catch(e){}
+}
+const musicLevel=(q,target,keys,rule,okMsg)=>({q,run(st){
+  let notes=[],lock=false;
+  const bar=h('div','mbar'),sum=h('div','note'),pal=h('div','pal');
+  const draw=()=>{
+    const s=notes.reduce((a,n)=>a+n.b,0);
+    bar.innerHTML=notes.map(n=>`<span class="seg" style="flex:${n.b};background:${n.c}">${n.l}</span>`).join('')+(s<target?`<span class="seg empty" style="flex:${target-s}"></span>`:'');
+    sum.textContent=`Собрано: ${bt(s)} из ${target} хлопков`;
+  };
+  const reset=()=>{notes=[];lock=false;draw()};
+  keys.forEach(k=>{
+    const b=h('button','chip',NOTES[k].n);b.style.borderColor=NOTES[k].c;
+    b.onclick=()=>{
+      if(lock||api.over)return;
+      notes.push(NOTES[k]);draw();
+      const s=notes.reduce((a,n)=>a+n.b,0);
+      if(s>target){lock=true;api.miss(`Не влезло: получилось ${bt(s)} хлопков, а в такте ${target}. Начнём заново.`);later(()=>{if(lock)reset()},900)}
+      else if(s===target){
+        const r=rule?rule(notes):null;
+        if(r){lock=true;api.miss(r);later(()=>{if(lock)reset()},900)}
+        else api.win(`${notes.map(n=>bt(n.b)).join(' + ')} = ${target}. ${okMsg}`);
+      }
+    };pal.append(b);
+  });
+  const play=h('button','btn ghost','▶ Послушать'),clr=h('button','btn ghost','Очистить');
+  play.onclick=()=>playNotes(notes);clr.onclick=()=>{if(!api.over)reset()};
+  const ctl=h('div','choices');ctl.append(play,clr);
+  st.append(bar,sum,pal,ctl);draw();
+}});
+world({id:'music',title:'Музыкальные доли',sub:'Ритм из дробей',group:'frac',
+  intro:'Ритм тоже состоит из дробей. Такт — это <b>4 хлопка</b>. Целая нота длится 4 хлопка, половинная — 2, четвертная — 1, восьмая — полхлопка. Складывай ноты так, чтобы они точно заполнили такт.',
+  levels:[
+    musicLevel('Заполни такт на <b>4 хлопка</b> только <b>половинными</b> нотами (каждая — 2 хлопка).',4,['h'],null,'Две половинки — это целая.'),
+    musicLevel('Теперь заполни такт на 4 хлопка только <b>четвертными</b> нотами (каждая — 1 хлопок).',4,['q'],null,'Четыре четвертинки — это целая.'),
+    musicLevel('Заполни такт на 4 хлопка. Должна быть <b>ровно одна половинная</b> нота, остальное — любыми.',4,['h','q','e'],ns=>ns.filter(n=>n.k==='h').length===1?null:'В такте должна быть ровно одна половинная нота.','Половинка плюс ещё половинка из мелких нот.'),
+    musicLevel('Короткий такт на <b>3 хлопка</b>. Используй <b>минимум две восьмые</b> ноты.',3,['h','q','e'],ns=>ns.filter(n=>n.k==='e').length>=2?null:'Нужно хотя бы две восьмые ноты (по полхлопка).','Две восьмые вместе дают один хлопок.')
+  ]});
+
+/* ================= МИР 11. Весы и шарики ================= */
+const net=a=>a.reduce((s,k)=>s+(k==='w'?1:-1),0);
+function scaleSvg(l,r){
+  const a=clamp((r-l)*4,-22,22),rad=a*Math.PI/180,L=118,px=180,py=52;
+  const lx=px-L*Math.cos(rad),ly=py-L*Math.sin(rad),rx=px+L*Math.cos(rad),ry=py+L*Math.sin(rad);
+  const col=v=>v<0?'var(--neg)':v>0?'var(--pos)':'var(--ink)';
+  const pan=(x,y,v)=>`<path d="M${x} ${y}L${x-46} ${y+74}M${x} ${y}L${x+46} ${y+74}" style="fill:none;stroke:var(--ink);stroke-width:3"/><path d="M${x-54} ${y+74}H${x+54}Q${x} ${y+112} ${x-54} ${y+74}Z" style="fill:var(--yel);stroke:var(--ink);stroke-width:3;stroke-linejoin:round"/><text x="${x}" y="${y+62}" text-anchor="middle" style="font:800 24px Unbounded,sans-serif;fill:${col(v)}">${sg(v)}</text>`;
+  return `<svg viewBox="0 0 360 240" class="scale" role="img" aria-label="Весы: слева ${sg(l)}, справа ${sg(r)}"><path d="M${px} ${py}V212M136 222H224" style="fill:none;stroke:var(--ink);stroke-width:6;stroke-linecap:round"/>${pan(lx,ly,l)}${pan(rx,ry,r)}<line x1="${lx}" y1="${ly}" x2="${rx}" y2="${ry}" style="stroke:var(--ink);stroke-width:7;stroke-linecap:round"/><circle cx="${px}" cy="${py}" r="9" style="fill:var(--yel);stroke:var(--ink);stroke-width:3"/></svg>`;
+}
+function tray(items,onClick){
+  const box=h('div','pan');
+  items.forEach((k,i)=>{
+    const b=h('button',k==='w'?'wt':'bl',k==='w'?'+1':'−1');
+    b.setAttribute('aria-label',k==='w'?'гирька':'шарик');
+    if(onClick)b.onclick=()=>onClick(i);else b.disabled=true;box.append(b);
+  });
+  if(!items.length)box.append(h('span','note','пусто'));
+  return box;
+}
+world({id:'scales',title:'Весы и шарики',sub:'Гирька плюс, шарик минус',group:'neg',
+  intro:'Гирька тянет чашу вниз — это <b>+1</b>. Воздушный шарик, привязанный к чаше, тянет её вверх — это <b>−1</b>. Чем больше шариков, тем легче чаша. Если шариков больше, чем гирек, чаша «весит» меньше нуля.',
+  levels:[
+    {q:'Гирька — это <b>+1</b>, шарик — это <b>−1</b>. На левой чаше 3 гирьки и 1 шарик. Сколько «весит» левая чаша?',run(st){
+      const L=['w','w','w','b'],box=h('div','scalebox');box.innerHTML=scaleSvg(net(L),0);
+      st.append(box,tray(L));
+      choices(st,numOpts(2,[4,-2,3]),2,'3 − 1 = 2: шарик убрал у одной гирьки вес, осталось +2.',o=>`${sg(o.value)}? Шарик не прибавляет вес, а отнимает его: гирьки считай как +1, шарики как −1.`);
+    }},
+    {q:'На левой чаше 2 гирьки и 5 шариков. Чаша поднялась вверх. Сколько она «весит»?',run(st){
+      const L=['w','w','b','b','b','b','b'],box=h('div','scalebox');box.innerHTML=scaleSvg(net(L),0);
+      st.append(box,tray(L));
+      choices(st,numOpts(-3,[3,7,-7]),-3,'2 − 5 = −3: шариков больше, чем гирек, поэтому чаша ушла вверх, а её вес стал отрицательным.',o=>`${sg(o.value)}? Гирек всего 2, а шариков 5, и тянут они вверх. Посчитай 2 − 5.`);
+    }},
+    {q:'На левой чаше 1 гирька и 3 шарика. Добавляй гирьки и шарики на <b>правую</b> чашу, пока весы не встанут ровно. Нажми на предмет, чтобы убрать его.',run(st){
+      const L=['w','b','b','b'],R=[],ln=net(L);
+      const box=h('div','scalebox'),right=h('div'),log=h('div','note');
+      const draw=()=>{
+        box.innerHTML=scaleSvg(ln,net(R));right.innerHTML='';
+        right.append(tray(R,i=>{if(api.over)return;R.splice(i,1);draw()}));
+        log.textContent=`Слева ${sg(ln)}, справа ${sg(net(R))}`;
+        if(net(R)===ln)api.win(`${sg(ln)} = ${sg(net(R))}: весы в равновесии. Справа столько же «веса», сколько слева.`);
+      };
+      const add=h('button','btn','+ гирька'),bal=h('button','btn ghost','+ шарик');
+      add.onclick=()=>{if(api.over||R.length>=10)return;R.push('w');draw()};
+      bal.onclick=()=>{if(api.over||R.length>=10)return;R.push('b');draw()};
+      const ctl=h('div','choices');ctl.append(add,bal);
+      st.append(box,h('div','note','Левая чаша'),tray(L),h('div','note','Правая чаша'),right,ctl,log);draw();
+    }},
+    {q:'На левой чаше 2 гирьки и 3 шарика, она весит <b>−1</b>. Сними шарики так, чтобы чаша стала весить <b>+1</b>. Нажимай на предметы, чтобы убрать их.',run(st){
+      const L=['w','w','b','b','b'],box=h('div','scalebox'),log=h('div','note'),holder=h('div');
+      const draw=()=>{box.innerHTML=scaleSvg(net(L),0);holder.innerHTML='';holder.append(tray(L,i=>{
+        if(api.over)return;const was=net(L),k=L[i];L.splice(i,1);
+        log.textContent=`${num(was)} − (${k==='w'?'+1':'−1'}) = ${num(net(L))}`;draw();
+        if(net(L)===1)api.win(`Убрать шарик (−1) — всё равно что добавить +1. Снимаем два шарика: −1 + 2 = +1.`);
+      }))};
+      st.append(box,holder,log);draw();
+    }}
+  ]});
+
+/* ================= МИР 12. Старт ракеты ================= */
+function tline(st,pick){
+  const min=-10,max=10,W=700,P=34,U=(W-2*P)/(max-min),X=v=>P+(v-min)*U;
+  let s=`<svg viewBox="0 0 ${W} 190" class="nl" role="img" aria-label="Шкала времени от −10 до 10 секунд">`;
+  s+=`<rect x="${P-12}" y="16" width="${X(0)-P+12}" height="100" rx="12" style="fill:var(--negbg)"/><rect x="${X(0)}" y="16" width="${W-P-X(0)+12}" height="100" rx="12" style="fill:var(--posbg)"/>`;
+  s+=`<text x="${X(-5)}" y="42" text-anchor="middle" font-size="20" style="fill:var(--neg)">до старта</text><text x="${X(5)}" y="42" text-anchor="middle" font-size="20" style="fill:var(--pos)">после старта</text>`;
+  s+=`<line x1="14" y1="92" x2="${W-14}" y2="92" style="stroke:var(--ink);stroke-width:4"/>`;
+  for(let v=min;v<=max;v++){
+    const x=X(v),len=v%5===0?26:14;
+    s+=`<line x1="${x}" y1="92" x2="${x}" y2="${92+len}" style="stroke:var(--ink);stroke-width:${v%5===0?4:3}"/>`;
+    if(v%5===0)s+=`<text x="${x}" y="150" text-anchor="middle" font-size="26" font-weight="800" style="fill:var(--ink)">${num(v)}</text>`;
+  }
+  s+=`<circle cx="${X(0)}" cy="92" r="8" style="fill:var(--hot)"/><g id="tmk"></g><rect x="0" y="0" width="${W}" height="190" fill="transparent"/></svg>`;
+  const box=h('div','',s);st.append(box);
+  const svg=$('svg',box),mk=$('#tmk',box);
+  const set=v=>{const x=X(v);mk.style.transition='';mk.innerHTML=`<g transform="translate(${x} 62)"><path d="M0-34Q12-18 9 6H-9Q-12-18 0-34Z" style="fill:#fff;stroke:#14123d;stroke-width:3;stroke-linejoin:round"/><circle cx="0" cy="-14" r="4" style="fill:#5bc8ff;stroke:#14123d;stroke-width:2"/><path d="M-9 -2L-17 12L-9 8Z M9 -2L17 12L9 8Z" style="fill:#ff3d5a;stroke:#14123d;stroke-width:2;stroke-linejoin:round"/><path d="M-5 8Q0 26 5 8Z" style="fill:#ffd93d;stroke:#14123d;stroke-width:2"/></g><circle cx="${x}" cy="92" r="6" style="fill:var(--sun);stroke:var(--ink);stroke-width:3"/><text x="${x}" y="182" text-anchor="middle" font-size="26" font-weight="800" style="fill:${v<0?'var(--neg)':v>0?'var(--pos)':'var(--ink)'}">T = ${sg(v)}</text>`};
+  if(pick)svg.addEventListener('click',e=>{
+    if(api.over)return;const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W;
+    const v=clamp(Math.round((x-P)/U+min),min,max);set(v);pick(v);
+  });else svg.style.cursor='default';
+  return {set};
+}
+function sortGame(st,items,okMsg,noMsg){
+  const sorted=[...items].sort((a,b)=>a.val-b.val);let k=0;
+  const row=h('div','sortrow'),pool=h('div','choices');
+  shuffle(items).forEach(it=>{
+    const b=h('button','chip small',it.html);
+    b.onclick=()=>{
+      if(api.over||b.disabled)return;
+      if(it===sorted[k]){b.disabled=true;b.classList.add('ok');row.append(h('span','sorted',it.html));k++;if(k===sorted.length)api.win(okMsg)}
+      else api.miss(typeof noMsg==='function'?noMsg(it):noMsg);
+    };pool.append(b);
+  });
+  st.append(row,pool);
+}
+world({id:'rocket',title:'Старт ракеты',sub:'Время до и после нуля',group:'neg',
+  intro:'Перед стартом ракеты идёт обратный отсчёт: <b>−10, −9 … −1</b>. Момент старта — это <b>0</b>. После старта время идёт плюсами: <b>+1, +2, +3</b>. Минус значит «ещё до старта».',
+  levels:[
+    {q:'Ракета стартует в момент <b>0</b>. Сейчас <b>T = −5</b>. Сколько секунд осталось до старта?',run(st){
+      tline(st,null).set(-5);
+      choices(st,numOpts(5,[-5,10,0],num),5,'До старта 5 секунд: от −5 до 0 пять шагов.',o=>`${num(o.value)}? Отсчёт идёт до нуля: от −5 до 0 — сколько шагов?`);
+    }},
+    {q:'Сейчас <b>T = −3</b>. Проходит ещё <b>7</b> секунд. Каким станет T?',run(st){
+      const t=tline(st,null);t.set(-3);
+      choices(st,numOpts(4,[-10,-4,10]),4,'−3 + 7 = +4: три секунды до старта и ещё четыре секунды полёта.',o=>`${sg(o.value)}? Сначала дойди до нуля (старт) — это 3 секунды. Остальные секунды уже полёт.`,()=>t.set(4));
+    }},
+    {q:'Проверка двигателей была за <b>6 секунд до старта</b>. Нажми на шкале нужный момент времени.',run(st){
+      tline(st,v=>{v===-6?api.win('Верно: T = −6. «За 6 секунд до старта» — это минус 6.'):api.miss(`Ты выбрал T = ${sg(v)}. ${v>0?'Это уже после старта, а проверка была до него — слева от нуля.':'До старта — слева от нуля. Отсчитай 6 делений влево.'}`)});
+    }},
+    {q:'Расставь события по порядку, от <b>самого раннего</b> к самому позднему. Нажимай карточки по очереди.',run(st){
+      sortGame(st,[
+        {html:'Проверка связи<br>T = −12',val:-12},{html:'Заправка<br>T = −8',val:-8},{html:'Закрытие люка<br>T = −2',val:-2},
+        {html:'Старт<br>T = 0',val:0},{html:'Отделение ступени<br>T = +4',val:4}
+      ],'Верный порядок: −12, −8, −2, 0, +4. Чем левее на шкале, тем раньше.',it=>`«${it.html.replace('<br>',' ')}» — не самое раннее из оставшихся. Раньше то, что левее на шкале: −12 раньше, чем −2.`);
+    }}
+  ]});
+
+/* ================= МИР 13. Разница мячей ================= */
+const scoreHtml=(name,f,a)=>`<div class="scoreb"><div class="sn">${name}</div><div class="sbig"><span>${f}</span><i>:</i><span>${a}</span></div><div class="sl"><span>забили</span><span>пропустили</span></div></div>`;
+world({id:'goals',title:'Разница мячей',sub:'Забил минус пропустил',group:'neg',
+  intro:'В турнирной таблице есть колонка «разница мячей»: сколько команда <b>забила</b> минус сколько <b>пропустила</b>. Если пропустила больше, чем забила, разница получается отрицательной.',
+  levels:[
+    {q:'Команда «Орлы» забила 3 гола и пропустила 5. Какая у неё разница мячей?',run(st){
+      st.append(h('div','',scoreHtml('Орлы',3,5)));
+      choices(st,numOpts(-2,[2,8,-8]),-2,'3 − 5 = −2: пропустили на два гола больше, чем забили.',o=>`${sg(o.value)}? Разница — это забитые минус пропущенные: 3 − 5.`);
+    }},
+    {q:'У какой команды <b>лучшая</b> разница мячей?',run(st){
+      const T=[['Ястребы',9,8],['Орлы',6,2],['Лисы',5,9],['Волки',4,4]];
+      st.append(h('div','',`<table class="tbl"><tr><th>Команда</th><th>Забили</th><th>Пропустили</th></tr>${T.map(t=>`<tr><td>${t[0]}</td><td>${t[1]}</td><td>${t[2]}</td></tr>`).join('')}</table>`));
+      choices(st,shuffle(T).map(t=>({label:t[0],value:t[0]})),'Орлы','Орлы: 6 − 2 = +4. Ястребы забили больше всех, но и пропустили много: 9 − 8 = +1.',o=>{const t=T.find(x=>x[0]===o.value);return `У команды «${o.value}» разница ${sg(t[1]-t[2])}. Сравни разницы всех команд, а не только забитые мячи.`});
+    }},
+    {q:'Расставь команды по разнице мячей от <b>худшей</b> к лучшей. Каждая карточка — «забили : пропустили».',run(st){
+      sortGame(st,[[3,7],[5,5],[2,3],[6,4],[1,6]].map(t=>({html:`${t[0]} : ${t[1]}`,val:t[0]-t[1]})),
+        'Верно: −5, −4, −1, 0, +2. Чем меньше число, тем хуже разница.',it=>`Разница у ${it.html} — это ${sg(it.val)}. Худшая разница — самая маленькая, самая «минусовая».`);
+    }},
+    {q:'«Лисы» забили 4 и пропустили 6 (разница −2). Забивай и пропускай голы, чтобы разница стала ровно <b>+1</b>.',run(st){
+      let f=4,a=6;const board=h('div'),diff=h('div','diffbig'),log=h('div','note');
+      const draw=()=>{board.innerHTML=scoreHtml('Лисы',f,a);const d=f-a;diff.textContent='Разница: '+sg(d);diff.style.color=d<0?'var(--neg)':d>0?'var(--pos)':'var(--ink)';if(d===1)api.win(`${f} − ${a} = +1. Из −2 в +1 — это три забитых гола без пропущенных.`)};
+      const g=h('button','btn','Забили гол'),m=h('button','btn ghost','Пропустили гол');
+      g.onclick=()=>{if(api.over)return;const was=f-a;f++;log.textContent=`${num(was)} + 1 = ${num(f-a)}`;draw()};
+      m.onclick=()=>{if(api.over)return;const was=f-a;a++;log.textContent=`${num(was)} − 1 = ${num(f-a)}`;draw()};
+      const ctl=h('div','choices');ctl.append(g,m);st.append(board,diff,ctl,log);draw();
+    }}
+  ]});
+
+/* ================= МИР 14. Часы ================= */
+function clockSvg(m,sector=true){
+  const C=110,R=92,rad=a=>a*Math.PI/180,pt=(d,r)=>[C+r*Math.sin(rad(d)),C-r*Math.cos(rad(d))];
+  let s=`<svg viewBox="0 0 220 220" class="clock" role="img" aria-label="Часы, минутная стрелка на ${m} минутах"><circle cx="110" cy="110" r="102" style="fill:#ffd93d;stroke:#14123d;stroke-width:4"/><circle cx="110" cy="110" r="92" style="fill:#fff"/>`;
+  if(m>0&&sector){const [x,y]=pt(m*6,R);s+=`<path d="M110 110V${110-R}A${R} ${R} 0 ${m>30?1:0} 1 ${x} ${y}Z" style="fill:#ff7a00;opacity:.55"/>`}
+  for(let i=0;i<60;i++){const big=i%5===0,[x1,y1]=pt(i*6,R-(big?12:6)),[x2,y2]=pt(i*6,R-1);s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:#14123d;stroke-width:${big?3:1.5}"/>`}
+  for(let n=1;n<=12;n++){const [x,y]=pt(n*30,70);s+=`<text x="${x}" y="${y+6}" text-anchor="middle" style="font:800 17px Unbounded,sans-serif;fill:#14123d">${n}</text>`}
+  const [hx,hy]=pt(m*6,80);
+  return s+`<line x1="110" y1="110" x2="${hx}" y2="${hy}" style="stroke:#14123d;stroke-width:6;stroke-linecap:round"/><circle cx="110" cy="110" r="7" style="fill:#14123d"/></svg>`;
+}
+const clockLevel=(q,target,ok)=>({q,run(st){
+  const box=h('div','',clockSvg(0)),info=h('div','note','Нажми на циферблат там, куда должна показывать минутная стрелка.');
+  box.addEventListener('click',e=>{
+    if(api.over)return;const svg=$('svg',box),r=svg.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width*220-110,y=(e.clientY-r.top)/r.height*220-110;
+    let ang=Math.atan2(x,-y)*180/Math.PI;if(ang<0)ang+=360;
+    const m=(Math.round(ang/30)*5)%60;box.innerHTML=clockSvg(m);
+    const g=gcd(m,60),fx=m?fr(m/g,60/g):'0';
+    info.innerHTML=`${m} минут — это ${m}/60 = ${fx} часа`;
+    if(m===target)api.win(ok);
+    else api.miss(`Стрелка показывает ${m} минут, то есть ${fx} часа. Весь час — это 60 минут.`);
+  });
+  st.append(box,info);
+}});
+world({id:'clock',title:'Часы',sub:'Доли часа',group:'frac',
+  intro:'Час — это 60 минут, целый круг на часах. Четверть круга — 15 минут, половина круга — 30. Минутная стрелка показывает, какую <b>долю часа</b> уже прошла: 30 минут — это 30/60, то есть 1/2.',
+  levels:[
+    clockLevel(`Покажи на часах <b>половину часа</b> — ${fr(1,2)}.`,30,'30 минут — это 30/60 = 1/2 часа. Стрелка смотрит вниз.'),
+    clockLevel(`Покажи <b>четверть часа</b> — ${fr(1,4)}.`,15,'15 минут — это 15/60 = 1/4 часа. Закрашена четверть круга.'),
+    clockLevel(`Покажи <b>три четверти часа</b> — ${fr(3,4)}.`,45,'45 минут — это 45/60 = 3/4 часа: три четверти круга.'),
+    {q:'Минутная стрелка показывает <b>20 минут</b>. Какая это доля часа?',run(st){
+      st.append(h('div','',clockSvg(20)));
+      choices(st,[{label:fr(1,3),value:'a'},{label:fr(1,4),value:'b'},{label:fr(1,5),value:'c'},{label:fr(1,2),value:'d'}],'a','20 из 60: сократим на 20, получим 1 из 3. Закрашена третья часть круга.',()=>'Целый час — 60 минут. Сколько раз по 20 минут помещается в часе?');
+    }}
+  ]});
+
+/* ================= МИР 15. Полоски дробей ================= */
+function strip(n,{sel=new Set(),onToggle,color='#ff7a00'}={}){
+  const el=h('div','strip'+(onToggle?'':' still'));el.style.setProperty('--c',color);const segs=[];
+  const draw=()=>segs.forEach((b,i)=>b.classList.toggle('on',sel.has(i)));
+  for(let i=0;i<n;i++){const b=h('button','');b.setAttribute('aria-label','часть '+(i+1));b.onclick=()=>{if(!onToggle)return;sel.has(i)?sel.delete(i):sel.add(i);draw();onToggle(sel)};segs.push(b);el.append(b)}
+  draw();return {el,sel};
+}
+function stripFig(n,{cap='',...o}={}){
+  const s=strip(n,o),f=h('figure'),c=h('figcaption',cap);f.append(s.el,c);s.fig=f;s.cap=c;return s;
+}
+const addStripLevel=(q,parts,n,need,ok,hint)=>({q,run(st){
+  const box=h('div','strips');
+  parts.forEach(([pn,pk,color])=>box.append(stripFig(pn,{sel:new Set(Array.from({length:pk},(_,i)=>i)),cap:fr(pk,pn),color}).fig));
+  const res=stripFig(n,{color:'#12a85f',cap:`сумма: ${fr(0,n)}`,onToggle:set=>{res.cap.innerHTML=`сумма: ${fr(set.size,n)}`}});
+  box.append(res.fig);st.append(box);
+  checkBtn(st,()=>res.sel.size===need?api.win(ok):api.miss(`Ты закрасил ${fr(res.sel.size,n)}. ${hint}`));
+}});
+world({id:'strips',title:'Полоски дробей',sub:'Сравниваем и складываем',group:'frac',
+  intro:'Все полоски одной длины, но порезаны на разное число частей. Так видно, какие дроби <b>равны</b>, какая <b>больше</b> и как дроби <b>складываются</b>.',
+  levels:[
+    {q:`Сверху закрашена ${fr(1,3)} полоски. Закрась на нижней полоске (6 частей) <b>столько же</b>.`,run(st){
+      const a=stripFig(3,{sel:new Set([0]),cap:fr(1,3),color:'#ff7a00'});
+      const b=stripFig(6,{color:'#2459f2',cap:fr(0,6),onToggle:set=>{b.cap.innerHTML=fr(set.size,6)}});
+      const box=h('div','strips');box.append(a.fig,b.fig);st.append(box);
+      checkBtn(st,()=>b.sel.size===2?api.win('1/3 = 2/6: каждая треть — это две шестых.'):api.miss(`Ты закрасил ${fr(b.sel.size,6)}. Одна треть содержит две шестых: 6 : 3 = 2.`));
+    }},
+    {q:`Какая дробь <b>больше</b>: ${fr(3,8)} или ${fr(1,2)}? Посмотри на полоски.`,run(st){
+      const a=stripFig(8,{sel:new Set([0,1,2]),cap:fr(3,8),color:'#ff7a00'}),b=stripFig(2,{sel:new Set([0]),cap:fr(1,2),color:'#2459f2'});
+      const box=h('div','strips');box.append(a.fig,b.fig);st.append(box);
+      choices(st,[{label:fr(3,8),value:'a'},{label:fr(1,2),value:'b'},{label:'Одинаково',value:'e'}],'b','1/2 = 4/8, а 3/8 меньше. Закрашенная часть оранжевой полоски короче.',o=>o.value==='a'?'Числа 3 и 8 больше, чем 1 и 2, но это не значит, что дробь больше. Сравни закрашенные части полосок.':'Длины закрашенного на двух полосках разные — посмотри внимательно.');
+    }},
+    addStripLevel(`${fr(1,4)} + ${fr(2,4)} = ? Закрась на нижней полоске сумму.`,[[4,1,'#ff7a00'],[4,2,'#2459f2']],4,3,'1/4 + 2/4 = 3/4: у них одинаковые части, поэтому складываем числители.','Сложи закрашенные части: одна четвёртая и ещё две четвёртых.'),
+    addStripLevel(`${fr(1,2)} + ${fr(1,4)} = ? Нижняя полоска разрезана на 8 частей. Закрась сумму.`,[[2,1,'#ff7a00'],[4,1,'#2459f2']],8,6,'1/2 = 4/8, 1/4 = 2/8. Вместе 6/8, а это то же самое, что 3/4.','Переведи в восьмые: 1/2 — это 4 части из 8, а 1/4 — 2 части из 8.')
+  ]});
+
+/* ================= МОДУЛЬ ================= */
+const sameSet=(set,arr)=>set.size===arr.length&&arr.every(v=>set.has(v));
+const listNums=set=>[...set].sort((a,b)=>a-b).map(num).join(', ')||'ничего';
+function zline(st,{min=-8,max=8,multi=false,marks=[],bracket=null,label=''}={}){
+  const W=700,P=30,U=(W-2*P)/(max-min),X=v=>P+(v-min)*U,sel=new Set();
+  let s=`<svg viewBox="0 0 ${W} 170" class="nl" role="img" aria-label="Числовая прямая от ${num(min)} до ${num(max)}">`;
+  s+=`<rect x="${P-14}" y="10" width="${X(0)-P+14}" height="96" rx="12" style="fill:var(--negbg)"/><rect x="${X(0)}" y="10" width="${W-P-X(0)+14}" height="96" rx="12" style="fill:var(--posbg)"/>`;
+  s+=`<line x1="12" y1="84" x2="${W-12}" y2="84" style="stroke:var(--ink);stroke-width:4"/>`;
+  for(let v=min;v<=max;v++){const x=X(v);s+=`<line x1="${x}" y1="84" x2="${x}" y2="${84+(v===0?28:16)}" style="stroke:var(--ink);stroke-width:${v===0?4:3}"/><text x="${x}" y="144" text-anchor="middle" font-size="22" font-weight="800" style="fill:var(--ink)">${num(v)}</text>`}
+  s+=`<circle cx="${X(0)}" cy="84" r="8" style="fill:var(--hot)"/><g id="zd"></g><rect x="0" y="0" width="${W}" height="170" fill="transparent"/></svg>`;
+  const box=h('div','',s);st.append(box);const svg=$('svg',box),g=$('#zd',box);
+  const dot=(v,c)=>`<circle cx="${X(v)}" cy="84" r="12" style="fill:${c};stroke:var(--ink);stroke-width:3"/>`;
+  const paint=()=>{
+    let t='';
+    if(bracket!==null){const a=X(0),b=X(bracket),y=52;t+=`<path d="M${a} ${y+10}V${y}H${b}V${y+10}" style="fill:none;stroke:var(--ink);stroke-width:4;stroke-linejoin:round"/><text x="${(a+b)/2}" y="${y-8}" text-anchor="middle" font-size="28" font-weight="800" style="fill:var(--ink)">${label}</text>`}
+    marks.forEach(v=>t+=dot(v,v<0?'var(--neg)':'var(--pos)'));
+    [...sel].forEach(v=>t+=dot(v,'var(--sun)'));g.innerHTML=t;
+  };
+  paint();
+  if(multi)svg.addEventListener('click',e=>{
+    if(api.over)return;const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,v=clamp(Math.round((x-P)/U+min),min,max);
+    sel.has(v)?sel.delete(v):sel.add(v);paint();
+  });else svg.style.cursor='default';
+  return {sel};
+}
+function multiPick(st,{opts,correct,okMsg,noMsg}){
+  const sel=new Set(),box=h('div','choices');
+  opts.forEach(o=>{
+    const b=h('button','chip',o.label);b.setAttribute('aria-pressed','false');
+    b.onclick=()=>{if(api.over)return;sel.has(o.value)?sel.delete(o.value):sel.add(o.value);b.classList.toggle('pick',sel.has(o.value));b.setAttribute('aria-pressed',String(sel.has(o.value)))};
+    box.append(b);
+  });
+  st.append(box);
+  checkBtn(st,()=>sameSet(sel,correct)?api.win(okMsg):api.miss(typeof noMsg==='function'?noMsg(sel):noMsg));
+}
+world({id:'abs1',title:'Расстояние до нуля',sub:'Что такое |x|',group:'neg',
+  intro:'Модуль числа — это его <b>расстояние от нуля</b> на числовой прямой. Записывают так: <b>|−5| = 5</b>. Расстояние не бывает отрицательным, поэтому модуль — это число без знака «минус»: и |−5|, и |5| равны 5.',
+  levels:[
+    {q:'Сколько шагов от нуля до числа <b>−5</b>? Это и есть модуль: |−5|.',run(st){
+      zline(st,{marks:[-5],bracket:-5,label:'?'});
+      choices(st,numOpts(5,[-5,0,10],num),5,'|−5| = 5: от нуля до −5 пять шагов. Расстояние не бывает отрицательным.',o=>`${num(o.value)}? Считай шаги от нуля: расстояние — это всегда число без знака «минус».`);
+    }},
+    {q:'Отметь на прямой <b>все числа</b>, модуль которых равен 3. Нажимай на деления, потом «Проверить».',run(st){
+      const z=zline(st,{multi:true});
+      checkBtn(st,()=>sameSet(z.sel,[-3,3])?api.win('|−3| = 3 и |3| = 3: два числа по разные стороны от нуля на одинаковом расстоянии.'):api.miss(`Отмечено: ${listNums(z.sel)}. Отсчитай 3 шага от нуля вправо и 3 шага влево.`));
+    }},
+    {q:'Какое число <b>дальше от нуля</b>: −7 или 4?',run(st){
+      zline(st,{marks:[-7,4]});
+      choices(st,[{label:'−7',value:'a'},{label:'4',value:'b'},{label:'Одинаково',value:'c'}],'a','|−7| = 7, а |4| = 4. Дальше от нуля −7, хотя оно меньше.',o=>o.value==='b'?'Число 4 больше, но дальше от нуля не оно. Сравни расстояния: |−7| и |4|.':'Посчитай шаги от нуля до каждой точки.');
+    }},
+    {q:'Отметь все <b>целые числа</b>, у которых модуль меньше 3: |x| &lt; 3.',run(st){
+      const z=zline(st,{multi:true});
+      checkBtn(st,()=>sameSet(z.sel,[-2,-1,0,1,2])?api.win('Подходят −2, −1, 0, 1, 2: все числа ближе к нулю, чем на 3 шага.'):api.miss(`Отмечено: ${listNums(z.sel)}. Нужны числа, которые ближе к нулю, чем на 3 шага (в обе стороны). Не забудь сам ноль.`));
+    }}
+  ]});
+const exprLevel=(q,expr,ans,wr,ok,hint)=>({q,run(st){
+  st.append(h('div','expr',`${expr} = <span class="qm">?</span>`));
+  choices(st,numOpts(ans,wr,num),ans,ok,o=>`${num(o.value)}? ${hint}`);
+}});
+world({id:'abs2',title:'Машина модуля',sub:'Считаем с | |',group:'neg',
+  intro:'Модуль «снимает» минус у числа: <b>|−6| = 6</b>. Но если минус стоит <b>перед</b> модулем, он остаётся: <b>−|−6| = −6</b>. Сначала считаем то, что внутри палочек, потом берём модуль.',
+  levels:[
+    exprLevel('Машина берёт число и выдаёт его расстояние до нуля. Что она выдаст для −8?','|−8|',8,[-8,0,16],'|−8| = 8: расстояние от нуля до −8 равно 8.','Модуль — это расстояние, оно не бывает отрицательным.'),
+    exprLevel('Минус стоит <b>перед</b> модулем. Чему равно выражение?','−|5|',-5,[5,0,-10],'|5| = 5, а минус перед модулем остался: −5.','Сначала найди модуль: |5|. Потом поставь перед ним минус.'),
+    exprLevel('Посчитай сумму двух модулей.','|−7| + |3|',10,[4,-10,-4],'|−7| = 7 и |3| = 3, вместе 10.','Каждый модуль считай отдельно: |−7| и |3|, а потом складывай.'),
+    exprLevel('Сначала посчитай то, что внутри палочек.','|3 − 8|',5,[-5,11,-11],'3 − 8 = −5, а |−5| = 5.','Сначала внутри: 3 − 8. Потом возьми модуль результата.')
+  ]});
+world({id:'abs3',title:'Два решения',sub:'Уравнения |x| = a',group:'neg',
+  intro:'Если <b>|x| = 4</b>, то x — число на расстоянии 4 от нуля. Таких чисел <b>два</b>: 4 и −4. А вот <b>|x| = −4</b> невозможно: расстояние не бывает отрицательным.',
+  levels:[
+    {q:'Найди <b>все</b> числа x, для которых |x| = 5.',run(st){
+      multiPick(st,{opts:[-5,5,0,10,-10].map(v=>({label:num(v),value:v})),correct:[-5,5],okMsg:'x = 5 или x = −5: оба числа на расстоянии 5 от нуля.',noMsg:sel=>`Выбрано: ${listNums(sel)}. Нужны числа, расстояние от нуля до которых равно 5.`});
+    }},
+    {q:'Сколько чисел подходят для уравнения <b>|x| = 0</b>?',run(st){
+      choices(st,numOpts(1,[0,2,3],String),1,'Подходит только 0: на расстоянии 0 от нуля находится сам ноль.',o=>`${o.value}? Какое число находится на расстоянии 0 от нуля?`);
+    }},
+    {q:'Сколько чисел подходят для уравнения <b>|x| = −3</b>?',run(st){
+      choices(st,numOpts(0,[1,2,3],String),0,'Ни одного: расстояние не может быть отрицательным.',o=>`${o.value}? Подумай: может ли расстояние равняться −3?`);
+    }},
+    {q:'Расстояние от числа x до числа <b>1</b> равно 3: |x − 1| = 3. Отметь все такие x.',run(st){
+      const z=zline(st,{multi:true,marks:[1]});
+      checkBtn(st,()=>sameSet(z.sel,[-2,4])?api.win('x = 4 или x = −2: от единицы 3 шага вправо и 3 шага влево.'):api.miss(`Отмечено: ${listNums(z.sel)}. Отступи от точки 1 на 3 шага вправо и на 3 шага влево.`));
+    }}
+  ]});
+
+/* ================= ДЕСЯТИЧНЫЕ ДРОБИ ================= */
+const dh=v=>{const i=Math.floor(v/100),f=v%100;return f?i+','+(f%10?String(f).padStart(2,'0'):f/10):String(i)};
+function fillGrid(st,{rows,cols,onChange}){
+  let n=0;const box=h('div','dgrid'),cells=[];box.style.setProperty('--cols',cols);
+  const paint=()=>cells.forEach((c,i)=>c.classList.toggle('on',i<n));
+  for(let i=0;i<rows*cols;i++){const c=h('button','dcell');c.setAttribute('aria-label','клетка '+(i+1));c.onclick=()=>{if(api.over)return;n=(n===i+1)?i:i+1;paint();onChange&&onChange(n)};cells.push(c);box.append(c)}
+  st.append(box);return {get n(){return n}};
+}
+const fillLevel=(q,rows,cols,need,ok,hint)=>({q,run(st){
+  const total=rows*cols,cap=h('div','note',`Закрашено: ${fr(0,total)}`);
+  st.append(h('div','note','Нажми на клетку — закрасится всё до неё включительно.'));
+  const g=fillGrid(st,{rows,cols,onChange:n=>{cap.innerHTML=`Закрашено: ${fr(n,total)}`}});st.append(cap);
+  checkBtn(st,()=>g.n===need?api.win(ok):api.miss(`Закрашено ${fr(g.n,total)}. ${hint}`));
+}});
+world({id:'dec1',title:'Десятые и сотые',sub:'Закрашиваем клетки',group:'frac',
+  intro:'Десятичная дробь — это дробь со знаменателем 10, 100… Запись <b>0,3</b> значит «3 десятых», то есть 3/10. А <b>0,07</b> — «7 сотых», то есть 7/100. Первая цифра после запятой — десятые, вторая — сотые.',
+  levels:[
+    fillLevel('Полоска разбита на 10 частей. Закрась <b>0,3</b> полоски.',1,10,3,'0,3 = 3/10: закрашены 3 клетки из 10.','Одна клетка — это одна десятая (0,1).'),
+    fillLevel('Закрась <b>0,7</b> полоски.',1,10,7,'0,7 = 7/10: закрашено 7 клеток из 10.','0,7 — это 7 десятых, то есть 7 клеток из 10.'),
+    fillLevel('Квадрат разбит на 100 клеток. Закрась <b>0,07</b> квадрата.',10,10,7,'0,07 = 7/100: закрашено 7 клеток из 100 — совсем немного!','0,07 — это 7 сотых, то есть 7 клеток из 100 (а не 7 десятых).'),
+    fillLevel('Закрась <b>0,45</b> квадрата.',10,10,45,'0,45 = 45/100: закрашено 45 клеток из 100.','0,45 — это 45 сотых: ровно 45 клеток из 100.')
+  ]});
+function cmpBars(st,items){
+  const box=h('div','cmp');
+  items.forEach(it=>box.append(h('div','cmprow',`<span>${it.label}</span><span class="cb"><i style="width:${it.v}%;background:${it.color}"></i></span>`)));
+  st.append(box);
+}
+world({id:'dec2',title:'Что больше?',sub:'Сравниваем десятичные',group:'frac',
+  intro:'Чтобы сравнить десятичные числа, смотри на разряды слева направо: сначала целые, потом десятые, потом сотые. Ноль справа можно дописать: <b>0,3 = 0,30</b>. А 0,5 больше, чем 0,45, хотя «45 больше 5».',
+  levels:[
+    {q:'Что <b>больше</b>: 0,5 или 0,45?',run(st){
+      choices(st,[{label:'0,5',value:'a'},{label:'0,45',value:'b'},{label:'Равны',value:'c'}],'a','0,5 = 0,50 = 50 сотых, а 0,45 = 45 сотых. 50 больше 45.',o=>o.value==='b'?'Цифр после запятой у 0,45 больше, но это не значит, что число больше. Дополни: 0,5 = 0,50.':'Дополни 0,5 нулём справа: 0,50. Теперь сравни с 0,45.',()=>cmpBars(st,[{label:'0,5',v:50,color:'#ff7a00'},{label:'0,45',v:45,color:'#2459f2'}]));
+    }},
+    {q:'Что <b>больше</b>: 0,3 или 0,30?',run(st){
+      choices(st,[{label:'0,3',value:'a'},{label:'0,30',value:'b'},{label:'Равны',value:'c'}],'c','0,3 = 0,30: 3 десятых — это те же 30 сотых. Ноль справа не меняет число.',()=>'Попробуй дописать ноль к 0,3 и сравни. 3 десятых — это сколько сотых?',()=>cmpBars(st,[{label:'0,3',v:30,color:'#ff7a00'},{label:'0,30',v:30,color:'#2459f2'}]));
+    }},
+    {q:'Расставь числа от <b>меньшего</b> к большему. Нажимай карточки по порядку.',run(st){
+      sortGame(st,[70,7,17,71,10].map(v=>({html:dh(v),val:v})),'Верно: 0,07 < 0,1 < 0,17 < 0,7 < 0,71.',it=>`${it.html} — не самое маленькое из оставшихся. Дополни нулями до сотых и сравни: 0,7 = 0,70, а 0,07 — всего 7 сотых.`);
+    }},
+    {q:'Какое число лежит <b>между</b> 0,2 и 0,3?',run(st){
+      choices(st,numOpts(25,[35,15,2],dh),25,'0,2 = 0,20 и 0,3 = 0,30. Между ними есть 0,25 и другие числа.',o=>`${dh(o.value)} не лежит между 0,20 и 0,30. Представь оба числа в сотых.`);
+    }}
+  ]});
+const litHtml=(t,color='#2e8bff')=>{
+  const rows=Math.max(1,Math.ceil(t/10));let out='';
+  for(let r=0;r<rows;r++){const f=Math.max(0,Math.min(10,t-r*10));out+=`<span class="litrow">${Array.from({length:10},(_,i)=>`<i class="${i<f?'on':''}"></i>`).join('')}</span>`}
+  return `<figure class="lit">${out}<figcaption>${dh(t*10)} л</figcaption></figure>`;
+};
+const litLevel=(q,a,b,op,ans,wr,ok,hint)=>({q,run(st){
+  st.append(h('div','lits',`${litHtml(a)}<span class="opsign">${op}</span>${litHtml(b)}<span class="opsign">=</span><span class="opsign" style="color:var(--pos)">?</span>`));
+  choices(st,numOpts(ans,wr,dh),ans,ok,o=>`${dh(o.value)}? ${hint}`);
+}});
+world({id:'dec3',title:'Складываем литры',sub:'+ и − десятичных',group:'frac',
+  intro:'Десятичные дроби складывают и вычитают «по разрядам»: десятые с десятыми. Когда десятых набирается 10 и больше, они превращаются в целую единицу: <b>0,6 + 0,7 = 1,3</b>.',
+  levels:[
+    litLevel('В кувшине 0,4 л сока. Ты долил ещё 0,3 л. Сколько литров стало?',4,3,'+',70,[7,700,10],'0,4 + 0,3 = 0,7: 4 десятых и 3 десятых — это 7 десятых.','Складывай десятые с десятыми: 4 десятых + 3 десятых.'),
+    litLevel('Было 0,6 л, добавили 0,7 л. Сколько стало?',6,7,'+',130,[13,100,120],'0,6 + 0,7 = 1,3: 13 десятых — это 1 целая и 3 десятых.','6 десятых + 7 десятых = 13 десятых. А 10 десятых — это уже целый литр.'),
+    litLevel('Было 1,2 л, выпили 0,5 л. Сколько осталось?',12,5,'−',70,[170,7,60],'1,2 − 0,5 = 0,7: 12 десятых − 5 десятых = 7 десятых.','Переведи в десятые: 1,2 — это 12 десятых. Вычти 5 десятых.'),
+    litLevel('Было 2 л, вылили 0,6 л. Сколько осталось?',20,6,'−',140,[260,14,150],'2 − 0,6 = 1,4: 20 десятых − 6 десятых = 14 десятых.','2 литра — это 20 десятых. Вычти 6 десятых.')
+  ]});
+function dline(st,pick){
+  const max=20,W=700,P=34,U=(W-2*P)/max,X=t=>P+t*U;
+  let s=`<svg viewBox="0 0 ${W} 150" class="nl" role="img" aria-label="Числовая прямая от 0 до 2, деления по 0,1">`;
+  s+=`<line x1="14" y1="64" x2="${W-14}" y2="64" style="stroke:var(--ink);stroke-width:4"/>`;
+  for(let t=0;t<=max;t++){
+    const x=X(t),len=t%10===0?30:t%5===0?22:14;
+    s+=`<line x1="${x}" y1="64" x2="${x}" y2="${64+len}" style="stroke:var(--ink);stroke-width:${t%10===0?4:3}"/>`;
+    if(t%10===0)s+=`<text x="${x}" y="124" text-anchor="middle" font-size="30" font-weight="800" style="fill:var(--ink)">${t/10}</text>`;
+    else if(t%5===0)s+=`<text x="${x}" y="114" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--muted)">${dh(t*10)}</text>`;
+  }
+  s+=`<g id="dm"></g><rect x="0" y="0" width="${W}" height="150" fill="transparent"/></svg>`;
+  const box=h('div','',s);st.append(box);const svg=$('svg',box),mk=$('#dm',box);
+  svg.addEventListener('click',e=>{
+    if(api.over)return;const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,t=clamp(Math.round((x-P)/U),0,max);
+    mk.innerHTML=`<path d="M${X(t)} 64V26l22 8-22 8" style="fill:var(--pos);stroke:var(--ink);stroke-width:3;stroke-linejoin:round"/><circle cx="${X(t)}" cy="64" r="10" style="fill:var(--sun);stroke:var(--ink);stroke-width:3"/>`;
+    pick(t);
+  });
+}
+world({id:'dec4',title:'Дробь и десятичная',sub:'1/2 = 0,5',group:'frac',
+  intro:'Одну и ту же долю можно записать по-разному: <b>1/2 = 0,5</b>, <b>3/4 = 0,75</b>. Чтобы превратить дробь в десятичную, сделай знаменатель равным 10 или 100: 3/4 = 75/100 = 0,75.',
+  levels:[
+    {q:`Запиши дробь ${fr(1,2)} в виде десятичной.`,run(st){choices(st,numOpts(50,[12,20,5],dh),50,'1/2 = 5/10 = 0,5.',o=>`${dh(o.value)}? Умножь числитель и знаменатель на 5: получится знаменатель 10.`)}},
+    {q:`Запиши ${fr(3,4)} в виде десятичной.`,run(st){choices(st,numOpts(75,[34,25,340],dh),75,'3/4 = 75/100 = 0,75: умножили числитель и знаменатель на 25.',o=>`${dh(o.value)}? Умножь числитель и знаменатель на 25, чтобы получить знаменатель 100.`)}},
+    {q:'Запиши десятичную дробь <b>0,2</b> обыкновенной дробью.',run(st){
+      choices(st,[{label:fr(1,5),value:'a'},{label:fr(1,2),value:'b'},{label:fr(2,5),value:'c'},{label:fr(1,20),value:'d'}],'a','0,2 = 2/10 = 1/5: сократили на 2.',()=>'0,2 — это 2 десятых, то есть 2/10. Теперь сократи дробь.');
+    }},
+    {q:'Нажми на прямой, где находится число <b>1,3</b>. Каждое деление — одна десятая.',run(st){
+      dline(st,t=>t===13?api.win('1,3 — это одна целая и ещё 3 десятых: на 3 деления правее единицы.'):api.miss(`Ты выбрал ${dh(t*10)}. Найди единицу и отсчитай от неё 3 деления вправо.`));
+    }}
+  ]});
+
+/* ================= ЛАБОРАТОРИЯ ================= */
+function initLab(){
+  const rng=$('#labRange'),LR=22,N=13;
+  const lift=$('#labLift'),therm=$('#labTherm'),pile=$('#labPile');
+  lift.style.position='relative';
+  let rows='';
+  for(let v=6;v>=-6;v--)rows+=`<div class="lrow ${v<0?'neg':v>0?'pos':'zero'}" data-v="${v}">${num(v)}</div>`;
+  lift.innerHTML=rows+'<div id="labCar" class="lcar"></div>';
+  therm.innerHTML=`<div class="ltube" style="height:${N*LR}px"><div id="labMer" style="position:absolute;left:0;right:0;bottom:0"></div></div><div class="lbulb" id="labBulb"></div>`;
+  const svgLine=v=>{
+    const W=700,P=40,U=(W-2*P)/12,X=x=>P+(x+6)*U;
+    let s=`<svg viewBox="0 0 ${W} 110" class="nl" style="cursor:default" aria-hidden="true"><line x1="14" y1="50" x2="${W-14}" y2="50" style="stroke:var(--ink);stroke-width:4"/>`;
+    for(let i=-6;i<=6;i++)s+=`<line x1="${X(i)}" y1="50" x2="${X(i)}" y2="64" style="stroke:var(--ink);stroke-width:3"/><text x="${X(i)}" y="88" text-anchor="middle" font-size="20" font-weight="700" style="fill:var(--ink)">${num(i)}</text>`;
+    if(v!==0)s+=`<path d="M${X(v)} 22Q${X(0)} -10 ${X(-v)} 22" style="fill:none;stroke:var(--muted);stroke-width:3;stroke-dasharray:6 5"/>`;
+    s+=`<circle cx="${X(v)}" cy="50" r="12" style="fill:${v<0?'var(--neg)':v>0?'var(--pos)':'var(--hot)'};stroke:var(--ink);stroke-width:3"/>`;
+    if(v!==0)s+=`<circle cx="${X(-v)}" cy="50" r="12" style="fill:${-v<0?'var(--neg)':'var(--pos)'};opacity:.55;stroke:var(--ink);stroke-width:3"/>`;
+    return s+'</svg>';
+  };
+  const update=()=>{
+    const v=+rng.value,a=Math.abs(v);
+    $('#labN').textContent=num(v);$('#labN').style.color=v<0?'var(--neg)':v>0?'var(--pos)':'var(--ink)';
+    $('#labCar').style.transform=`translateY(${(6-v)*LR}px)`;
+    lift.querySelectorAll('.lrow').forEach(r=>r.classList.toggle('on',+r.dataset.v===v));
+    const m=$('#labMer');m.style.height=((v+6+.5)*LR)+'px';{const c=v<0?'var(--neg)':v>0?'var(--pos)':'var(--muted)';m.style.background=c;$('#labBulb').style.background=c}
+    pile.innerHTML='';
+    for(let i=0;i<a;i++)pile.append(h('span','tok '+(v>0?'coin':'debt'),v>0?'+1':'−1'));
+    if(!v)pile.innerHTML='<span class="note">пусто: ни монет, ни долгов</span>';
+    $('#labFacts').innerHTML=v===0
+      ?'<li>Лифт: Ноль — нулевой этаж: отсюда считают и вверх, и вниз.</li><li>Градусник: 0° — вода замерзает.</li><li>Кошелёк: Ни запаса, ни долга.</li><li>Прямая: Ноль — граница между плюсом и минусом.</li>'
+      :v<0
+      ?`<li>Лифт: <b>${num(v)}</b>: ниже нулевого этажа на ${a}.</li><li>Градусник: <b>${num(v)}°</b>: ниже нуля на ${a} градусов — мороз.</li><li>Кошелёк: <b>${num(v)}</b>: долг, ${a} монет надо отдать.</li><li>Прямая: <b>${num(v)}</b>: влево от нуля на ${a}.</li>`
+      :`<li>Лифт: <b>${sg(v)}</b>: выше нулевого этажа на ${a}.</li><li>Градусник: <b>${sg(v)}°</b>: выше нуля на ${a} градусов — тепло.</li><li>Кошелёк: <b>${sg(v)}</b>: запас, ${a} монет в кошельке.</li><li>Прямая: <b>${sg(v)}</b>: вправо от нуля на ${a}.</li>`;
+    $('#labLine').innerHTML=svgLine(v);
+    $('#labMirror').textContent=v===0?'Ноль — сам себе зеркало.':`Число ${num(v)} и число ${num(-v)} — зеркальные: они на одинаковом расстоянии (${a}) от нуля, но по разные стороны.`;
+  };
+  rng.oninput=update;update();
+}
+
+/* ================= иконки и цвета ================= */
+const icon=b=>`<svg class="pic" viewBox="0 0 64 64" aria-hidden="true"><g stroke="#14123d" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">${b}</g></svg>`;
+const ICONS={
+ lift:icon(`<rect x="10" y="6" width="44" height="52" rx="5" fill="#fff"/><path d="M10 40H54V53a5 5 0 0 1-5 5H15a5 5 0 0 1-5-5Z" fill="#9db9ff"/><path d="M10 40H54" stroke-width="4.5"/><path d="M10 23H54" stroke-width="2"/><rect x="25" y="24" width="14" height="13" rx="3" fill="#ffd93d"/><path d="M32 24v13" stroke-width="2"/><path d="M32 46v7M28.5 50l3.5 3.5 3.5-3.5" fill="none"/>`),
+ debts:icon(`<g transform="rotate(9 44 26)"><rect x="31" y="9" width="26" height="34" rx="4" fill="#fff" stroke-dasharray="5 4"/><path d="M38 26h12" stroke="#2459f2" stroke-width="4.5"/></g><circle cx="24" cy="38" r="17" fill="#ffd93d"/><circle cx="24" cy="38" r="10.5" fill="none" stroke-width="2"/><path d="M24 32v12M18 38h12" stroke-width="3.5"/>`),
+ thermo:icon(`<rect x="26" y="5" width="12" height="40" rx="6" fill="#fff"/><rect x="29.5" y="24" width="5" height="22" fill="#2459f2" stroke="none"/><circle cx="32" cy="49" r="10" fill="#2459f2"/><path d="M42 13h7M42 21h7M42 29h7M42 37h7" stroke-width="2.5"/>`),
+ line:icon(`<path d="M5 42H59M53 36l6 6-6 6M11 36l-6 6 6 6" fill="none"/><path d="M14 36v12M23 36v12M41 36v12M50 36v12" stroke-width="2.5"/><circle cx="32" cy="42" r="5" fill="#ff3d5a"/><path d="M14 32Q32 6 50 32" fill="none" stroke-width="3.5"/><path d="M43 25l7 7-10 1" fill="none" stroke-width="3.5"/><circle cx="14" cy="42" r="3.5" fill="#2459f2"/>`),
+ sea:icon(`<circle cx="47" cy="15" r="8" fill="#ffd93d"/><path d="M3 31q7-6 14 0t14 0 14 0 14 0V58a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z" fill="#2e8bff"/><ellipse cx="30" cy="47" rx="14" ry="6.5" fill="#ffd93d"/><rect x="25" y="38" width="9" height="6" rx="2" fill="#ffd93d"/><circle cx="24" cy="47" r="2" fill="#fff" stroke="none"/><circle cx="31" cy="47" r="2" fill="#fff" stroke="none"/><circle cx="38" cy="47" r="2" fill="#fff" stroke="none"/>`),
+ steps:icon(`<g transform="rotate(-10 32 32)"><rect x="11" y="11" width="42" height="42" rx="10" fill="#fff"/><circle cx="22" cy="22" r="3.4" fill="#14123d" stroke="none"/><circle cx="42" cy="22" r="3.4" fill="#14123d" stroke="none"/><circle cx="32" cy="32" r="3.4" fill="#14123d" stroke="none"/><circle cx="22" cy="42" r="3.4" fill="#14123d" stroke="none"/><circle cx="42" cy="42" r="3.4" fill="#14123d" stroke="none"/></g>`),
+ pizza:icon(`<path d="M30 38L52 38A22 22 0 1 1 30 16Z" fill="#ffd93d"/><path d="M34 34L56 34A22 22 0 0 0 34 12Z" fill="#ffd93d"/><circle cx="19" cy="43" r="4" fill="#ff3d5a"/><circle cx="35" cy="51" r="4" fill="#ff3d5a"/><circle cx="20" cy="27" r="4" fill="#ff3d5a"/><circle cx="46" cy="25" r="3.5" fill="#ff3d5a"/>`),
+ choc:icon(`<rect x="12" y="6" width="40" height="52" rx="6" fill="#8a4a24"/><path d="M12 19H52M12 32H52M25 6V58M38 6V58" stroke="#5a2d12" stroke-width="2.5" fill="none"/><path d="M38 6H46a6 6 0 0 1 6 6V19H38Z" fill="#c98a52" stroke="none"/><rect x="8" y="38" width="48" height="22" rx="5" fill="#d6dcff"/><path d="M16 49h14" stroke-width="2.5"/>`),
+ cup:icon(`<path d="M15 7H49L45 53a5 5 0 0 1-5 5H24a5 5 0 0 1-5-5Z" fill="#fff"/><path d="M17 30H47L45 53a5 5 0 0 1-5 5H24a5 5 0 0 1-5-5Z" fill="#2e8bff" stroke="none"/><path d="M15 7H49L45 53a5 5 0 0 1-5 5H24a5 5 0 0 1-5-5Z" fill="none"/><path d="M50 18h6M50 30h8M50 42h6" stroke-width="2.5"/>`),
+ music:icon(`<ellipse cx="19" cy="46" rx="8.5" ry="6" fill="#14123d" transform="rotate(-20 19 46)"/><ellipse cx="45" cy="40" rx="8.5" ry="6" fill="#14123d" transform="rotate(-20 45 40)"/><path d="M26 44V15L52 9V38" fill="none" stroke-width="4"/><path d="M26 15L52 9V19L26 25Z" fill="#ffd93d"/>`),
+ lab:icon(`<path d="M25 6H39V24L54 52a6 6 0 0 1-5 9H15a6 6 0 0 1-5-9L25 24Z" fill="#fff"/><path d="M16 42H48L54 52a6 6 0 0 1-5 9H15a6 6 0 0 1-5-9Z" fill="#2459f2" stroke="none"/><path d="M25 6H39V24L54 52a6 6 0 0 1-5 9H15a6 6 0 0 1-5-9L25 24Z" fill="none"/><path d="M19 52h9M36 52h9M40.5 47.5v9" stroke="#fff" stroke-width="3.5"/><circle cx="43" cy="31" r="2.5" fill="#ffd93d"/>`)
+};
+const COLORS={lift:'#c5ee4e',debts:'#ff82b6',thermo:'#55e3b8',line:'#ffa133',sea:'#70d4ff',steps:'#b99dff',pizza:'#ff6b4f',choc:'#ffd93d',cup:'#8fa8ff',music:'#e977ff',lab:'#ffffff'};
+Object.assign(ICONS,{
+ scales:icon(`<path d="M32 22V52M20 54H44" stroke-width="4"/><path d="M12 26L52 18" stroke-width="4"/><path d="M12 26L3 42H21Z" fill="#fff"/><path d="M52 18L43 34H61Z" fill="#fff"/><rect x="8" y="30" width="8" height="8" rx="2" fill="#14123d"/><circle cx="52" cy="9" r="5" fill="#2459f2"/><path d="M52 14V18" stroke-width="2"/><circle cx="32" cy="22" r="4.5" fill="#ffd93d"/>`),
+ rocket:icon(`<path d="M24 38L13 52L24 46Z M40 38L51 52L40 46Z" fill="#ff3d5a"/><path d="M32 4C43 14 45 29 41 46H23C19 29 21 14 32 4Z" fill="#fff"/><circle cx="32" cy="24" r="5.5" fill="#5bc8ff"/><path d="M27 48Q32 63 37 48Z" fill="#ffd93d"/>`),
+ goals:icon(`<circle cx="32" cy="32" r="24" fill="#fff"/><path d="M32 21L41 28L38 39H26L23 28Z" fill="#14123d"/><path d="M32 21V9M41 28L53 24M38 39L46 50M26 39L18 50M23 28L11 24" fill="none"/>`),
+ clock:icon(`<circle cx="32" cy="32" r="25" fill="#fff"/><path d="M32 32V7A25 25 0 0 1 57 32Z" fill="#ff7a00"/><circle cx="32" cy="32" r="25" fill="none"/><path d="M32 32V14M32 32L44 38" stroke-width="3.5" fill="none"/><circle cx="32" cy="32" r="2.5" fill="#14123d"/>`),
+ strips:icon(`<rect x="8" y="8" width="48" height="14" rx="3" fill="#ffd93d"/><rect x="8" y="25" width="24" height="14" fill="#ff7a00"/><rect x="32" y="25" width="24" height="14" fill="#fff"/><rect x="8" y="42" width="12" height="14" fill="#2459f2"/><rect x="20" y="42" width="12" height="14" fill="#fff"/><rect x="32" y="42" width="12" height="14" fill="#fff"/><rect x="44" y="42" width="12" height="14" fill="#fff"/>`)
+});
+Object.assign(COLORS,{scales:'#ffb98a',rocket:'#ff5c8a',goals:'#3ddc84',clock:'#ffe79a',strips:'#ff9fe0'});
+Object.assign(ICONS,{
+ abs1:icon(`<path d="M6 44H58" fill="none"/><path d="M14 38v12M50 38v12" stroke-width="2.5"/><path d="M32 36v16" stroke-width="3.5"/><circle cx="32" cy="44" r="5" fill="#ff3d5a"/><circle cx="50" cy="44" r="6" fill="#2459f2"/><path d="M33 26H49M38 20l-5 6 5 6M44 20l5 6-5 6" fill="none" stroke-width="3"/>`),
+ abs2:icon(`<rect x="17" y="12" width="30" height="40" rx="7" fill="#fff"/><path d="M27 20V44M37 20V44" stroke-width="5"/><path d="M3 32H15M10 27l5 5-5 5" fill="none"/><path d="M49 32H61M56 27l5 5-5 5" fill="none"/><circle cx="32" cy="8" r="3" fill="#ffd93d"/>`),
+ abs3:icon(`<path d="M6 46H58" fill="none"/><path d="M32 8V56" stroke-dasharray="4 4" stroke-width="2.5"/><circle cx="14" cy="46" r="7" fill="#2459f2"/><circle cx="50" cy="46" r="7" fill="#ff7a00"/><circle cx="32" cy="46" r="4" fill="#ff3d5a"/><path d="M14 38Q32 6 50 38" fill="none" stroke-width="3" stroke-dasharray="1 7"/>`),
+ dec1:icon(`<rect x="10" y="10" width="44" height="44" rx="4" fill="#fff"/><rect x="10" y="10" width="44" height="8.8" fill="#ff7a00"/><rect x="10" y="18.8" width="17.6" height="8.8" fill="#ff7a00"/><path d="M18.8 10V54M27.6 10V54M36.4 10V54M45.2 10V54M10 18.8H54M10 27.6H54M10 36.4H54M10 45.2H54" stroke-width="1.8" fill="none"/><rect x="10" y="10" width="44" height="44" rx="4" fill="none"/>`),
+ dec2:icon(`<rect x="8" y="10" width="48" height="13" rx="4" fill="#ff7a00"/><rect x="8" y="41" width="30" height="13" rx="4" fill="#2459f2"/><path d="M26 28L38 32L26 36" fill="none" stroke-width="3.5"/>`),
+ dec3:icon(`<path d="M14 8H38V50a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6Z" fill="#fff"/><path d="M14 30H38V50a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6Z" fill="#2e8bff" stroke="none"/><path d="M14 8H38V50a6 6 0 0 1-6 6H20a6 6 0 0 1-6-6Z" fill="none"/><path d="M38 16H46a6 6 0 0 1 6 6v8a6 6 0 0 1-6 6H38" fill="none"/><path d="M14 18H20M14 30H22M14 42H20" stroke-width="2.5"/>`),
+ dec4:icon(`<circle cx="19" cy="21" r="13" fill="#fff"/><path d="M19 21V8A13 13 0 0 1 19 34Z" fill="#ff7a00"/><circle cx="19" cy="21" r="13" fill="none"/><path d="M38 17H55M50 11l6 6-6 6" fill="none"/><rect x="8" y="42" width="48" height="12" rx="3" fill="#fff"/><rect x="8" y="42" width="24" height="12" rx="3" fill="#2459f2"/><path d="M13 42V54M18 42V54M23 42V54M28 42V54M37 42V54M42 42V54M47 42V54M52 42V54" stroke-width="1.6" fill="none"/>`)
+});
+Object.assign(COLORS,{abs1:'#70d4ff',abs2:'#ffd93d',abs3:'#c5ee4e',dec1:'#ff82b6',dec2:'#55e3b8',dec3:'#8fa8ff',dec4:'#ffa133'});
+const STAR='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg>';
+const starsHtml=n=>[1,2,3].map(i=>`<i class="st${i<=n?' on':''}">${STAR}</i>`).join('');
+
+/* ================= главная ================= */
+function renderHome(){
+  const gn=$('#gridNeg'),gf=$('#gridFrac');gn.innerHTML='';gf.innerHTML='';
+  const lab=h('button','tile lab',`${ICONS.lab}<span><b>Лаборатория минуса</b><small>Начни отсюда: одно число — как этаж лифта, температура, долг и точка на прямой</small></span><span class="go"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>`);
+  lab.style.setProperty('--c',COLORS.lab);lab.onclick=()=>show('lab');gn.append(lab);
+  let got=0,max=0;
+  WORLDS.forEach(w=>{
+    const st=save[w.id]||[],g=st.reduce((a,b)=>a+(b||0),0),m=w.levels.length*3;got+=g;max+=m;
+    const pips=w.levels.map((_,i)=>`<i class="pip${st[i]?' on':''}"></i>`).join('');
+    const c=h('button','tile',`${ICONS[w.id]}<b>${w.title}</b><small>${w.sub}</small><span class="prog">${pips}<span class="sc">${g}/${m}</span></span>`);
+    c.style.setProperty('--c',COLORS[w.id]);
+    c.onclick=()=>openWorld(w);(w.group==='neg'?gn:gf).append(c);
+  });
+  $('#totalStars').innerHTML=`${STAR}<span>${got} из ${max}</span>`;
+}
+function goHome(){renderHome();show('home')}
+let rs=false;
+$('#reset').onclick=function(){
+  if(!rs){rs=true;this.textContent='Точно сбросить? Нажми ещё раз';setTimeout(()=>{rs=false;this.textContent='Сбросить прогресс'},3000);return}
+  save={};persist();rs=false;this.textContent='Сбросить прогресс';renderHome();
+};
+initLab();$('#labMini').innerHTML=ICONS.lab;renderHome();show('home');
+</script>
+</body>
+</html>
